@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@vercel/postgres": "^0.5.1",
     "bcryptjs": "^2.4.3",
     "cookie": "^1.0.2",
     "jsonwebtoken": "^9.0.2",
