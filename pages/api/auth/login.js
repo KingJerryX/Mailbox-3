@@ -13,6 +13,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Check JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables');
+      return res.status(500).json({
+        error: 'Server configuration error. Please contact support.',
+        code: 'JWT_SECRET_MISSING'
+      });
+    }
+
     // Find user
     const user = await mailbox.getUserByUsername(username);
 
@@ -42,6 +51,10 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({
+      error: error.message || 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
