@@ -13,8 +13,12 @@ export default async function handler(req, res) {
 
   try {
     console.log('Testing database connection...');
+    const postgresUrl = process.env.POSTGRES_URL || '';
+    const isPooled = postgresUrl.includes('pooler') || postgresUrl.includes('pgbouncer');
+
     console.log('POSTGRES_URL exists:', !!process.env.POSTGRES_URL);
     console.log('POSTGRES_PRISMA_URL exists:', !!process.env.POSTGRES_PRISMA_URL);
+    console.log('Connection string type:', isPooled ? 'pooled' : 'direct');
 
     // Simple test query
     const startTime = Date.now();
@@ -29,7 +33,9 @@ export default async function handler(req, res) {
       databaseTime: result.rows[0].current_time,
       postgresVersion: result.rows[0].version,
       hasPostgresUrl: !!process.env.POSTGRES_URL,
-      hasPostgresPrismaUrl: !!process.env.POSTGRES_PRISMA_URL
+      hasPostgresPrismaUrl: !!process.env.POSTGRES_PRISMA_URL,
+      connectionType: isPooled ? 'pooled' : 'direct',
+      connectionStringPreview: postgresUrl ? postgresUrl.substring(0, 50) + '...' : 'not set'
     });
   } catch (error) {
     clearTimeout(timeout);
