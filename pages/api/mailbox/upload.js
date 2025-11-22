@@ -29,6 +29,11 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No image provided' });
       }
 
+      // Validate that image_data is JPG (base64 starts with /9j/ for JPEG)
+      if (image_data && !image_data.startsWith('/9j/')) {
+        return res.status(400).json({ error: 'Only JPG files are allowed for mailbox design' });
+      }
+
       const design = await mailbox.saveMailboxDesign(
         user.id,
         image_url || `data:image/jpeg;base64,${image_data}`,

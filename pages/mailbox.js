@@ -12,6 +12,7 @@ export default function Mailbox({ user }) {
   const [notification, setNotification] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState(null);
   const router = useRouter();
   const notificationTimeoutRef = useRef(null);
   const checkIntervalRef = useRef(null);
@@ -135,8 +136,15 @@ export default function Mailbox({ user }) {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      showNotification('Please upload an image file!', 'error');
+    // Check if file is JPG
+    const isJPG = file.type === 'image/jpeg' ||
+                  file.type === 'image/jpg' ||
+                  file.name.toLowerCase().endsWith('.jpg') ||
+                  file.name.toLowerCase().endsWith('.jpeg');
+
+    if (!isJPG) {
+      showNotification('⚠️ Only JPG files are allowed for mailbox design!', 'error');
+      event.target.value = ''; // Clear the input
       return;
     }
 
@@ -178,12 +186,17 @@ export default function Mailbox({ user }) {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const recipientId = parseInt(formData.get('recipient'));
-    const content = formData.get('content').trim();
+    const recipientId = replyingTo ? replyingTo.sender_id : parseInt(formData.get('recipient'));
+    let content = formData.get('content').trim();
 
     if (!content) {
       showNotification('Please enter a message!', 'error');
       return;
+    }
+
+    // If replying, prepend "Re: " and the original message
+    if (replyingTo) {
+      content = `Re: "${replyingTo.content.substring(0, 50)}${replyingTo.content.length > 50 ? '...' : ''}"\n\n${content}`;
     }
 
     try {
@@ -204,6 +217,7 @@ export default function Mailbox({ user }) {
         showNotification('💕 Message sent!', 'success');
         e.target.reset();
         setShowCompose(false);
+        setReplyingTo(null);
         fetchData();
       } else {
         showNotification('Failed to send message', 'error');
@@ -212,6 +226,12 @@ export default function Mailbox({ user }) {
       console.error('Error sending message:', err);
       showNotification('Error sending message', 'error');
     }
+  };
+
+  const handleReply = (message) => {
+    // Set the recipient to the sender of the message
+    setReplyingTo(message);
+    setShowCompose(true);
   };
 
   const handleMarkAsRead = async (messageId) => {
@@ -298,9 +318,12 @@ export default function Mailbox({ user }) {
         {showUpload && (
           <div className={styles.uploadSection}>
             <h3>Choose a cute mailbox design</h3>
+            <p style={{ color: '#666', fontSize: '14px', marginBottom: '10px' }}>
+              ⚠️ Only JPG files are allowed
+            </p>
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,.jpg"
               onChange={handleUploadDesign}
               className={styles.fileInput}
             />
@@ -311,27 +334,44 @@ export default function Mailbox({ user }) {
         {/* Compose Message Section */}
         {showCompose && (
           <div className={styles.composeSection}>
-            <h3>💕 Write a Message</h3>
+            <h3>{replyingTo ? '💬 Reply to Message' : '💕 Write a Message'}</h3>
             <form onSubmit={handleSendMessage}>
-              <select name="recipient" required className={styles.select}>
-                <option value="">Select recipient...</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.username}</option>
-                ))}
-              </select>
+              {replyingTo ? (
+                <div style={{
+                  backgroundColor: '#f0f0f0',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  marginBottom: '15px'
+                }}>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                    Replying to: <strong>{replyingTo.sender_username}</strong>
+                  </p>
+                  <input type="hidden" name="recipient" value={replyingTo.sender_id} />
+                </div>
+              ) : (
+                <select name="recipient" required className={styles.select}>
+                  <option value="">Select recipient...</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.username}</option>
+                  ))}
+                </select>
+              )}
               <textarea
                 name="content"
-                placeholder="Type your sweet message here..."
+                placeholder={replyingTo ? "Type your reply here..." : "Type your sweet message here..."}
                 required
                 className={styles.textarea}
                 rows="5"
               />
               <button type="submit" className={styles.btnSend}>
-                Send 💌
+                {replyingTo ? 'Send Reply 💌' : 'Send 💌'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowCompose(false)}
+                onClick={() => {
+                  setShowCompose(false);
+                  setReplyingTo(null);
+                }}
                 className={styles.btnCancel}
               >
                 Cancel
@@ -382,6 +422,26 @@ export default function Mailbox({ user }) {
                           alt="Message attachment"
                           className={styles.messageImage}
                         />
+                      )}
+                      {msg.recipient_id === user.id && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReply(msg);
+                          }}
+                          style={{
+                            marginTop: '10px',
+                            padding: '8px 16px',
+                            backgroundColor: '#667eea',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          💬 Reply
+                        </button>
                       )}
                     </div>
                   ))}

@@ -14,6 +14,9 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/mailbox" style={styles.link}>
                   Mailbox
                 </Link>
+                <Link href="/settings" style={styles.link}>
+                  Settings
+                </Link>
                 <span style={styles.userInfo}>
                   {user.username}
                 </span>
