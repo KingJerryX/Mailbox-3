@@ -1,4 +1,4 @@
-import { sql } from '../../../lib/db.js';
+import { sql, client } from '../../../lib/db.js';
 
 export default async function handler(req, res) {
   // Set a timeout for the response
@@ -34,13 +34,27 @@ export default async function handler(req, res) {
       postgresVersion: result.rows[0].version,
       hasPostgresUrl: !!process.env.POSTGRES_URL,
       hasPostgresPrismaUrl: !!process.env.POSTGRES_PRISMA_URL,
-      connectionType: isPooled ? 'pooled' : 'direct',
-      connectionStringPreview: postgresUrl ? postgresUrl.substring(0, 50) + '...' : 'not set'
+      connectionType: isPooled ? 'pooled' : 'direct (may be converted by createClient)',
+      connectionStringPreview: postgresUrl ? postgresUrl.substring(0, 50) + '...' : 'not set',
+      usingCreateClient: true
     });
   } catch (error) {
     clearTimeout(timeout);
 
     console.error('Database test error:', error);
+
+    // List all POSTGRES-related environment variables
+    const postgresVars = {};
+    Object.keys(process.env).forEach(key => {
+      if (key.startsWith('POSTGRES_')) {
+        const value = process.env[key];
+        // Show first 30 chars and last 10 chars for security
+        postgresVars[key] = value
+          ? `${value.substring(0, 30)}...${value.substring(value.length - 10)}`
+          : 'not set';
+      }
+    });
+
     return res.status(500).json({
       success: false,
       error: error.message,
@@ -48,7 +62,13 @@ export default async function handler(req, res) {
       details: {
         hasPostgresUrl: !!process.env.POSTGRES_URL,
         hasPostgresPrismaUrl: !!process.env.POSTGRES_PRISMA_URL,
-        errorName: error.name
+        hasPostgresUrlNonPooling: !!process.env.POSTGRES_URL_NON_POOLING,
+        errorName: error.name,
+        allPostgresVars: postgresVars,
+        // Show connection string type if POSTGRES_URL exists
+        postgresUrlType: process.env.POSTGRES_URL
+          ? (process.env.POSTGRES_URL.includes('pooler') || process.env.POSTGRES_URL.includes('pgbouncer') ? 'pooled' : 'direct')
+          : 'not set'
       }
     });
   }
