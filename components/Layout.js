@@ -36,14 +36,43 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/settings" className={styles.link}>
                   ⚙️ Settings
                 </Link>
-                {(user.is_admin === true || user.is_admin === 'true' || user.is_admin === 1 || Boolean(user.is_admin)) && (
-                  <Link href="/admin/users" className={styles.link}>
-                    🔍 Admin
-                  </Link>
-                )}
+                {(() => {
+                  // Check if user is admin - handle various formats
+                  const isAdmin = user.is_admin === true ||
+                                 user.is_admin === 'true' ||
+                                 user.is_admin === 1 ||
+                                 user.is_admin === '1' ||
+                                 (typeof user.is_admin === 'string' && user.is_admin.toLowerCase() === 'true');
+
+                  if (isAdmin) {
+                    return (
+                      <Link href="/admin/users" className={styles.link}>
+                        🔍 Admin
+                      </Link>
+                    );
+                  }
+                  return null;
+                })()}
                 <Link href="/debug/admin-check" className={styles.link} style={{ fontSize: '12px', opacity: 0.7 }}>
                   🔧
                 </Link>
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    fontSize: '12px',
+                    opacity: 0.7,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    margin: 0,
+                    color: 'inherit',
+                    textDecoration: 'none'
+                  }}
+                  title="Refresh to update admin status"
+                >
+                  🔄
+                </button>
                 <span className={styles.userInfo}>
                   👤 {user.username}
                 </span>

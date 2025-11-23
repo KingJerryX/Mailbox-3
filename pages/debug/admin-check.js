@@ -73,10 +73,14 @@ export default function AdminCheck({ user, setUser }) {
 
       const data = await res.json();
       if (res.ok) {
-        alert(`Success! ${targetUsername} is now an admin. Please log out and log back in to see the admin link.`);
+        alert(`Success! ${targetUsername} is now an admin. The page will refresh in 2 seconds to update your status.`);
         setUsername('');
         setAdminSecret('');
         checkAdminStatus();
+        // Refresh the page after 2 seconds to update user state
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         alert(`Error: ${data.error}${data.hint ? '\n' + data.hint : ''}`);
       }

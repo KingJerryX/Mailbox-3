@@ -13,6 +13,19 @@ export default function AdminUsers({ user, setUser }) {
       router.push('/login');
       return;
     }
+
+    // Check if user is admin
+    const isAdmin = user.is_admin === true ||
+                   user.is_admin === 'true' ||
+                   user.is_admin === 1 ||
+                   user.is_admin === '1';
+
+    if (!isAdmin) {
+      setError('Admin access required');
+      setLoading(false);
+      return;
+    }
+
     fetchUsers();
   }, [user]);
 

@@ -9,7 +9,7 @@ function MyApp({ Component, pageProps }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
+  const verifyUser = () => {
     // Check if user is logged in
     const token = document.cookie
       .split('; ')
@@ -25,11 +25,20 @@ function MyApp({ Component, pageProps }) {
         .then(res => res.json())
         .then(data => {
           if (data.user) {
-            // Ensure is_admin is always a boolean
+            // Ensure is_admin is always a boolean - check various formats
+            let isAdmin = false;
+            if (data.user.is_admin === true ||
+                data.user.is_admin === 'true' ||
+                data.user.is_admin === 1 ||
+                data.user.is_admin === '1') {
+              isAdmin = true;
+            }
+
             const userData = {
               ...data.user,
-              is_admin: data.user.is_admin === true
+              is_admin: isAdmin
             };
+            console.log('App - Setting user with is_admin:', isAdmin, userData);
             setUser(userData);
           }
         })
@@ -40,6 +49,19 @@ function MyApp({ Component, pageProps }) {
     } else {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    verifyUser();
+
+    // Refresh user data every 30 seconds to catch admin status changes
+    const interval = setInterval(() => {
+      if (document.cookie.includes('token=')) {
+        verifyUser();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const logout = () => {
