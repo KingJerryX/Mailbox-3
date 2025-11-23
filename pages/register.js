@@ -62,7 +62,7 @@ export default function Register({ user, setUser }) {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>💕 Create Account</h1>
-        <p className={styles.subtitle}>Join your mailbox</p>
+        <p className={styles.subtitle}>Join FerryMail</p>
 
         {error && <div className={styles.error}>{error}</div>}
 

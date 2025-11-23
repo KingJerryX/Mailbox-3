@@ -113,7 +113,7 @@ export default function Settings({ user, setUser }) {
   return (
     <>
       <Head>
-        <title>Settings ⚙️ - Our Mailbox</title>
+        <title>Settings ⚙️ - FerryMail</title>
       </Head>
 
       <div className={styles.container}>
@@ -286,7 +286,7 @@ export default function Settings({ user, setUser }) {
               </p>
               <ul style={{ marginBottom: '20px', paddingLeft: '20px' }}>
                 <li>All your messages</li>
-                <li>Your mailbox design</li>
+                <li>Your FerryMail design</li>
                 <li>Your account data</li>
               </ul>
               <p style={{ marginBottom: '20px', fontWeight: 'bold', color: '#ff6b6b' }}>

@@ -1,4 +1,4 @@
-# 💌 Our Mailbox - A Sweet Long-Distance Gift
+# 🚢 FerryMail - A Sweet Long-Distance Gift
 
 A beautiful mailbox website for long-distance couples to leave sweet messages for each other. Upload cute designs, send messages, and get notified when your special someone leaves you something!
 
@@ -59,7 +59,7 @@ A beautiful mailbox website for long-distance couples to leave sweet messages fo
 2. Login with one of the accounts
 
 ### Step 3: Access Your Mailbox
-- Click "💌 Mailbox" in the navigation bar
+- Click "🚢 Mailbox" in the navigation bar
 - Or go directly to `http://localhost:3000/mailbox`
 
 ### Step 4: Start Using!
@@ -73,7 +73,7 @@ A beautiful mailbox website for long-distance couples to leave sweet messages fo
 1. Click "✉️ Write a Message"
 2. Select the recipient from the dropdown
 3. Type your sweet message
-4. Click "Send 💌"
+4. Click "Send 🚢"
 
 #### 📬 View Messages
 - All received messages appear in your mailbox
@@ -153,4 +153,4 @@ This project is designed to be a sweet, personal gift. Customize it with:
 - Personal touches in the messages
 - Custom notification sounds (future enhancement)
 
-Enjoy your mailbox! 💌✨
+Enjoy FerryMail! 🚢✨

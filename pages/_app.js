@@ -51,7 +51,7 @@ function MyApp({ Component, pageProps }) {
         fontSize: '24px',
         color: '#667eea'
       }}>
-        Loading... 💌
+        Loading... 🚢
       </div>
     );
   }

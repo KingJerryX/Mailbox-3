@@ -6,7 +6,7 @@ export default function Layout({ children, user, logout }) {
       <nav style={styles.nav}>
         <div style={styles.navContent}>
           <Link href="/" style={styles.logo}>
-            💌 Our Mailbox
+            🚢 FerryMail
           </Link>
           <div style={styles.navLinks}>
             {user ? (

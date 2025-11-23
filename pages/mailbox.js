@@ -265,7 +265,7 @@ export default function Mailbox({ user }) {
           const newCount = data.count || 0;
 
           if (newCount > unreadCount && unreadCount > 0) {
-            showNotification('💌 New message received!', 'success');
+            showNotification('🚢 New message received!', 'success');
             fetchThreads();
             if (selectedThread) {
               fetchThreadMessages(selectedThread.other_user_id);
@@ -375,7 +375,7 @@ export default function Mailbox({ user }) {
   if (!user || loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading your mailbox... 💌</div>
+        <div className={styles.loading}>Loading FerryMail... 🚢</div>
       </div>
     );
   }
@@ -383,7 +383,7 @@ export default function Mailbox({ user }) {
   return (
     <>
       <Head>
-        <title>Our Mailbox 💌</title>
+        <title>FerryMail 🚢</title>
       </Head>
 
       <div className={styles.container}>
@@ -418,7 +418,7 @@ export default function Mailbox({ user }) {
           <div className={`${styles.notification} ${styles[notification.type]}`}>
             <span className={styles.notificationIcon}>
               {notification.type === 'success' ? '✨' :
-               notification.type === 'error' ? '⚠️' : '💌'}
+               notification.type === 'error' ? '⚠️' : '🚢'}
             </span>
             <span>{notification.message}</span>
             <button
@@ -432,7 +432,7 @@ export default function Mailbox({ user }) {
 
         {/* Header */}
         <div className={styles.header}>
-          <h1 className={styles.title}>💌 Our Mailbox</h1>
+          <h1 className={styles.title}>🚢 FerryMail</h1>
           <p className={styles.subtitle}>Leave sweet messages for each other</p>
 
           {unreadCount > 0 && (
@@ -659,7 +659,7 @@ export default function Mailbox({ user }) {
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         title={sidebarOpen ? 'Close quick messages' : 'Open quick messages'}
                       >
-                        {sidebarOpen ? '✕' : '💌'}
+                        {sidebarOpen ? '✕' : '🚢'}
                       </button>
                     </div>
                   </div>
@@ -745,7 +745,7 @@ export default function Mailbox({ user }) {
                       className={styles.btnSend}
                       disabled={!replyingContent.trim() || sending}
                     >
-                      {sending ? 'Sending...' : 'Send 💌'}
+                      {sending ? 'Sending...' : 'Send 🚢'}
                     </button>
                   </form>
                 </div>
@@ -753,7 +753,7 @@ export default function Mailbox({ user }) {
                 {/* Preset Messages Sidebar */}
                 {sidebarOpen && (
                   <div className={styles.presetSidebar}>
-                    <h4 className={styles.presetTitle}>Quick Messages 💌</h4>
+                    <h4 className={styles.presetTitle}>Quick Messages 🚢</h4>
                     <div className={styles.presetButtons}>
                       <button
                         className={styles.presetBtn}

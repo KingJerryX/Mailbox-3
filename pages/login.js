@@ -49,8 +49,8 @@ export default function Login({ user, setUser }) {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>💌 Welcome Back</h1>
-        <p className={styles.subtitle}>Login to your mailbox</p>
+        <h1 className={styles.title}>🚢 Welcome Back</h1>
+        <p className={styles.subtitle}>Login to FerryMail</p>
 
         {error && <div className={styles.error}>{error}</div>}
 
