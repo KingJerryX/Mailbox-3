@@ -87,23 +87,66 @@ export default function Countdown({ user, setUser }) {
 
     try {
       const now = new Date();
+
+      // Handle date - it might be a Date object or a string
+      let targetDateStr = selectedTimer.target_date;
+
+      console.log('Countdown calculation - raw timer data:', {
+        target_date: selectedTimer.target_date,
+        target_date_type: typeof selectedTimer.target_date,
+        target_date_isDate: selectedTimer.target_date instanceof Date,
+        target_time: selectedTimer.target_time,
+        timezone: selectedTimer.timezone
+      });
+
+      if (targetDateStr instanceof Date) {
+        targetDateStr = targetDateStr.toISOString().split('T')[0];
+      } else if (typeof targetDateStr === 'string') {
+        // If it's already in YYYY-MM-DD format, use it
+        if (!targetDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          // Try to parse it
+          const dateObj = new Date(targetDateStr);
+          if (!isNaN(dateObj.getTime())) {
+            targetDateStr = dateObj.toISOString().split('T')[0];
+          } else {
+            console.error('Failed to parse date string:', targetDateStr);
+            setCountdownDisplay('Invalid date format');
+            return;
+          }
+        }
+      } else {
+        console.error('Unexpected date type:', typeof targetDateStr, targetDateStr);
+        setCountdownDisplay('Invalid date');
+        return;
+      }
+
       const timeStr = selectedTimer.target_time || '00:00';
 
       // Parse date and time components
-      const [year, month, day] = selectedTimer.target_date.split('-').map(Number);
+      const dateParts = targetDateStr.split('-');
+      if (dateParts.length !== 3) {
+        console.error('Invalid date format:', targetDateStr);
+        setCountdownDisplay('Invalid date format');
+        return;
+      }
+
+      const year = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]);
+      const day = parseInt(dateParts[2]);
+
       const timeParts = timeStr.split(':');
       const hour = parseInt(timeParts[0]) || 0;
       const minute = parseInt(timeParts[1]) || 0;
       const second = parseInt(timeParts[2]) || 0;
 
       if (isNaN(year) || isNaN(month) || isNaN(day)) {
-        console.error('Invalid date:', selectedTimer.target_date);
+        console.error('Invalid date components:', { year, month, day, dateStr: targetDateStr });
         setCountdownDisplay('Invalid date');
         return;
       }
 
       // Build target date/time string in ISO format
-      const targetDateTimeStr = `${selectedTimer.target_date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+      const targetDateTimeStr = `${targetDateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
 
       // Create date object - this creates it in local timezone
       const targetDateLocal = new Date(targetDateTimeStr);
@@ -115,10 +158,7 @@ export default function Countdown({ user, setUser }) {
       }
 
       // Calculate timezone offset for the target timezone
-      // We'll use a method that works: get the offset by comparing how the same moment
-      // appears in UTC vs the target timezone
-
-      // Get current time in target timezone (as a string, then parse components)
+      // Get current time in target timezone
       const nowInTZStr = now.toLocaleString('en-US', {
         timeZone: selectedTimer.timezone,
         year: 'numeric',
@@ -155,8 +195,8 @@ export default function Countdown({ user, setUser }) {
 
       if (isNaN(diff)) {
         console.error('NaN in diff calculation:', {
-          targetDate: selectedTimer.target_date,
-          targetTime: selectedTimer.target_time,
+          targetDate: targetDateStr,
+          targetTime: timeStr,
           timezone: selectedTimer.timezone,
           targetInTZDate: targetInTZDate.toString(),
           targetUTC: targetUTC.toString(),
