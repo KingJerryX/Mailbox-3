@@ -9,7 +9,6 @@ export default function Mailbox({ user }) {
   const [threadMessages, setThreadMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mailboxDesign, setMailboxDesign] = useState(null);
-  const [showUpload, setShowUpload] = useState(false);
   const [notification, setNotification] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -318,54 +317,6 @@ export default function Mailbox({ user }) {
     }, 10000);
   };
 
-  const handleUploadDesign = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const isJPG = file.type === 'image/jpeg' ||
-                  file.type === 'image/jpg' ||
-                  file.name.toLowerCase().endsWith('.jpg') ||
-                  file.name.toLowerCase().endsWith('.jpeg');
-
-    if (!isJPG) {
-      showNotification('⚠️ Only JPG files are allowed for mailbox design!', 'error');
-      event.target.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const token = getToken();
-        const base64data = reader.result.split(',')[1];
-
-        const res = await fetch('/api/mailbox/upload', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            image_data: base64data,
-            image_url: reader.result
-          })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setMailboxDesign(data.design.image_url || data.design.image_data);
-          setShowUpload(false);
-          showNotification('✨ Mailbox design updated!', 'success');
-        } else {
-          showNotification('Failed to upload design', 'error');
-        }
-      } catch (err) {
-        console.error('Error uploading:', err);
-        showNotification('Error uploading design', 'error');
-      }
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -531,14 +482,6 @@ export default function Mailbox({ user }) {
 
         {/* Action Buttons */}
         <div className={styles.actions}>
-          {!selectedThread && (
-            <button
-              className={styles.btnPrimary}
-              onClick={() => setShowUpload(!showUpload)}
-            >
-              🎨 Upload Mailbox Design
-            </button>
-          )}
           {selectedThread && (
             <button
               className={styles.btnSecondary}
@@ -551,23 +494,6 @@ export default function Mailbox({ user }) {
             </button>
           )}
         </div>
-
-        {/* Upload Design Section */}
-        {showUpload && !selectedThread && (
-          <div className={styles.uploadSection}>
-            <h3>Choose a cute mailbox design</h3>
-            <p style={{ color: '#666', fontSize: '14px', marginBottom: '10px' }}>
-              ⚠️ Only JPG files are allowed
-            </p>
-            <input
-              type="file"
-              accept="image/jpeg,.jpg"
-              onChange={handleUploadDesign}
-              className={styles.fileInput}
-            />
-            <button onClick={() => setShowUpload(false)}>Cancel</button>
-          </div>
-        )}
 
         {/* Thread List View */}
         {!selectedThread && (
