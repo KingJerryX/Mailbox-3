@@ -7,6 +7,9 @@ export default function BucketList({ user, setUser }) {
   const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [sortBy, setSortBy] = useState('default'); // default, category, date
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -147,6 +150,38 @@ export default function BucketList({ user, setUser }) {
 
   const categories = ['Travel', 'Food', 'Movies', 'Dates', 'Random', 'Goals', 'Adventure', 'Home'];
 
+  // Get unique categories from items
+  const availableCategories = ['All', ...new Set(items.map(item => item.category).filter(Boolean))];
+
+  // Filter and sort items
+  let filteredItems = items;
+
+  // Filter by category
+  if (selectedCategory !== 'All') {
+    filteredItems = filteredItems.filter(item => item.category === selectedCategory);
+  }
+
+  // Separate completed and incomplete
+  const incompleteItems = filteredItems.filter(item => !item.is_completed);
+  const completedItems = filteredItems.filter(item => item.is_completed);
+
+  // Sort items
+  const sortItems = (itemsToSort) => {
+    const sorted = [...itemsToSort];
+    if (sortBy === 'category') {
+      sorted.sort((a, b) => {
+        const catA = a.category || 'ZZZ';
+        const catB = b.category || 'ZZZ';
+        return catA.localeCompare(catB);
+      });
+    } else if (sortBy === 'date') {
+      sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    return sorted;
+  };
+
+  const displayItems = showCompleted ? sortItems(completedItems) : sortItems(incompleteItems);
+
   return (
     <>
       <Head>
@@ -161,13 +196,51 @@ export default function BucketList({ user, setUser }) {
         )}
 
         <div className={styles.header}>
-          <h1 className={styles.title}>💫 Shared Bucket List</h1>
-          <button
-            className={styles.btnPrimary}
-            onClick={() => setShowModal(true)}
-          >
-            + Add Bucket List Item
-          </button>
+          <div className={styles.headerTop}>
+            <h1 className={styles.title}>💫 Shared Bucket List</h1>
+            <button
+              className={styles.btnPrimary}
+              onClick={() => setShowModal(true)}
+            >
+              + Add Bucket List Item
+            </button>
+          </div>
+          <div className={styles.headerControls}>
+            <button
+              className={`${styles.completedBtn} ${showCompleted ? styles.active : ''}`}
+              onClick={() => setShowCompleted(!showCompleted)}
+            >
+              {showCompleted ? '📋 Active Items' : '✅ Completed Items'}
+            </button>
+          </div>
+        </div>
+
+        {/* Filters and Sort */}
+        <div className={styles.filtersSection}>
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Filter by Category:</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className={styles.filterSelect}
+            >
+              {availableCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="default">Default (Incomplete First)</option>
+              <option value="category">Category</option>
+              <option value="date">Date Added</option>
+            </select>
+          </div>
         </div>
 
         {/* Progress Display */}
@@ -187,14 +260,19 @@ export default function BucketList({ user, setUser }) {
         )}
 
         {/* Items Grid */}
-        {items.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>📝</div>
-            <p>No bucket list items yet. Add your first one to get started!</p>
+            <p>
+              {showCompleted
+                ? `No completed items${selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''} yet.`
+                : `No ${selectedCategory !== 'All' ? selectedCategory.toLowerCase() : ''} items yet. Add your first one to get started!`
+              }
+            </p>
           </div>
         ) : (
           <div className={styles.itemsGrid}>
-            {items.map(item => (
+            {displayItems.map(item => (
               <div
                 key={item.id}
                 className={`${styles.itemCard} ${item.is_completed ? styles.completed : ''}`}
