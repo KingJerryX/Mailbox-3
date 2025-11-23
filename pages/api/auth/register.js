@@ -58,6 +58,7 @@ export default async function handler(req, res) {
     const token = generateToken({
       id: user.id,
       username: user.username,
+      is_admin: user.is_admin || false,
     });
 
     clearTimeout(timeout);
@@ -66,6 +67,7 @@ export default async function handler(req, res) {
       user: {
         id: user.id,
         username: user.username,
+        is_admin: user.is_admin || false,
       },
     });
   } catch (error) {

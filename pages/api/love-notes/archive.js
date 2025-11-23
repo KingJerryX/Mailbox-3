@@ -3,7 +3,7 @@ import * as mailbox from '../../../lib/mailbox.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -22,35 +22,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (req.method === 'POST') {
-      const { receiverId, truth1, truth2, lie } = req.body;
+    if (req.method === 'PATCH') {
+      const { noteId } = req.body;
 
-      if (!receiverId || !truth1 || !truth2 || !lie) {
-        return res.status(400).json({ error: 'receiverId, truth1, truth2, and lie are required' });
+      if (!noteId) {
+        return res.status(400).json({ error: 'noteId is required' });
       }
 
-      if (!truth1.trim() || !truth2.trim() || !lie.trim()) {
-        return res.status(400).json({ error: 'All statements must be non-empty' });
-      }
+      await mailbox.archiveLoveNote(parseInt(noteId), user.id);
 
-      const gameId = await mailbox.createTTLGame(
-        user.id,
-        parseInt(receiverId),
-        truth1.trim(),
-        truth2.trim(),
-        lie.trim()
-      );
-
-      return res.status(201).json({ success: true, gameId });
+      return res.status(200).json({
+        success: true,
+        message: 'Love note archived'
+      });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error('TTL create API error:', error);
+    console.error('Archive love note API error:', error);
     return res.status(500).json({
       error: 'Internal server error',
       message: error.message
     });
   }
 }
-

@@ -253,6 +253,61 @@ export default function Mailbox({ user }) {
     }).catch(err => console.error('Error marking note as seen:', err));
   };
 
+  const handleArchiveNote = async (noteId) => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/love-notes/archive', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ noteId })
+      });
+
+      if (res.ok) {
+        setLoveNotes(prev => prev.filter(note => note.id !== noteId));
+        showNotification('💾 Love note archived!', 'success');
+      } else {
+        showNotification('Failed to archive love note', 'error');
+      }
+    } catch (err) {
+      console.error('Error archiving note:', err);
+      showNotification('Error archiving love note', 'error');
+    }
+  };
+
+  const [showDeleteThreadConfirm, setShowDeleteThreadConfirm] = useState(false);
+
+  const handleDeleteThread = async () => {
+    if (!selectedThread) return;
+
+    try {
+      const token = getToken();
+      const res = await fetch('/api/mailbox/delete-thread', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ otherUserId: selectedThread.other_user_id })
+      });
+
+      if (res.ok) {
+        showNotification('🗑️ Thread deleted successfully', 'success');
+        setSelectedThread(null);
+        setThreadMessages([]);
+        fetchThreads();
+        setShowDeleteThreadConfirm(false);
+      } else {
+        showNotification('Failed to delete thread', 'error');
+      }
+    } catch (err) {
+      console.error('Error deleting thread:', err);
+      showNotification('Error deleting thread', 'error');
+    }
+  };
+
   const startMessageChecking = () => {
     checkIntervalRef.current = setInterval(async () => {
       try {
@@ -481,12 +536,22 @@ export default function Mailbox({ user }) {
                   }}
                 >
                   <div className={styles.noteTape}></div>
-                  <button
-                    className={styles.noteClose}
-                    onClick={() => handleDismissNote(note.id)}
-                  >
-                    ×
-                  </button>
+                  <div className={styles.noteButtons}>
+                    <button
+                      className={styles.noteArchive}
+                      onClick={() => handleArchiveNote(note.id)}
+                      title="Archive this note"
+                    >
+                      💾
+                    </button>
+                    <button
+                      className={styles.noteClose}
+                      onClick={() => handleDismissNote(note.id)}
+                      title="Dismiss"
+                    >
+                      ×
+                    </button>
+                  </div>
                   <div className={styles.noteContent}>{note.content}</div>
                   {note.sender_username && (
                     <div className={styles.noteSender}>— {note.sender_username}</div>
@@ -494,6 +559,31 @@ export default function Mailbox({ user }) {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Delete Thread Confirmation Modal */}
+        {showDeleteThreadConfirm && (
+          <div className={styles.modalOverlay} onClick={() => setShowDeleteThreadConfirm(false)}>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <h2>⚠️ Delete Thread</h2>
+              <p>Are you sure you want to delete this entire conversation with {selectedThread?.other_username}? This action cannot be undone.</p>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                  className={styles.btnSend}
+                  onClick={handleDeleteThread}
+                  style={{ backgroundColor: '#ef4444' }}
+                >
+                  Yes, Delete
+                </button>
+                <button
+                  className={styles.btnCancel}
+                  onClick={() => setShowDeleteThreadConfirm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -654,6 +744,13 @@ export default function Mailbox({ user }) {
                   <div className={styles.chatHeader}>
                     <h3>💬 {selectedThread.other_username}</h3>
                     <div className={styles.chatHeaderButtons}>
+                      <button
+                        className={styles.deleteThreadButton}
+                        onClick={() => setShowDeleteThreadConfirm(true)}
+                        title="Delete thread"
+                      >
+                        🗑️
+                      </button>
                       <button
                         className={styles.sidebarToggle}
                         onClick={() => setSidebarOpen(!sidebarOpen)}
