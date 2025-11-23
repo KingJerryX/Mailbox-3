@@ -31,14 +31,18 @@ export default async function handler(req, res) {
 
       const messages = await mailbox.getThreadMessages(user.id, parseInt(other_user_id));
 
-      // Mark all messages as read when viewing thread
+      // Mark all received messages as read when viewing thread
+      // This means the other person has "read" your messages
       for (const msg of messages) {
         if (!msg.read && msg.recipient_id === user.id) {
           await mailbox.markAsRead(msg.id, user.id);
         }
       }
 
-      return res.status(200).json({ messages });
+      // Refresh messages to get updated read status
+      const updatedMessages = await mailbox.getThreadMessages(user.id, parseInt(other_user_id));
+
+      return res.status(200).json({ messages: updatedMessages });
     }
 
     if (req.method === 'POST') {

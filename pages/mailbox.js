@@ -326,6 +326,19 @@ export default function Mailbox({ user }) {
       </Head>
 
       <div className={styles.container}>
+        {/* Bobbing Hearts Background */}
+        <div className={styles.heartsBackground}>
+          {[...Array(15)].map((_, i) => (
+            <span key={i} className={styles.heart} style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 2}s`
+            }}>
+              💕
+            </span>
+          ))}
+        </div>
+
         {/* Notification */}
         {notification && (
           <div className={`${styles.notification} ${styles[notification.type]}`}>
@@ -490,26 +503,54 @@ export default function Mailbox({ user }) {
                       <p>No messages yet. Start the conversation! 💕</p>
                     </div>
                   ) : (
-                    threadMessages.map(msg => (
-                      <div
-                        key={msg.id}
-                        className={`${styles.chatMessage} ${msg.is_sent ? styles.sent : styles.received}`}
-                      >
-                        <div className={styles.chatBubble}>
-                          <div className={styles.chatContent}>{msg.content}</div>
-                          {msg.image_url && (
-                            <img
-                              src={msg.image_url}
-                              alt="Message attachment"
-                              className={styles.messageImage}
-                            />
+                    threadMessages.map((msg, index) => {
+                      // Check if we need to show a date separator
+                      const currentDate = new Date(msg.created_at).toDateString();
+                      const prevDate = index > 0
+                        ? new Date(threadMessages[index - 1].created_at).toDateString()
+                        : null;
+                      const showDateSeparator = index === 0 || (prevDate && currentDate !== prevDate);
+
+                      return (
+                        <div key={msg.id}>
+                          {showDateSeparator && (
+                            <div className={styles.dateSeparator}>
+                              <span>{new Date(msg.created_at).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}</span>
+                            </div>
                           )}
-                          <div className={styles.chatTime}>
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <div
+                            className={`${styles.chatMessage} ${msg.is_sent ? styles.sent : styles.received}`}
+                          >
+                            <div className={styles.chatBubble}>
+                              <div className={styles.chatContent}>{msg.content}</div>
+                              {msg.image_url && (
+                                <img
+                                  src={msg.image_url}
+                                  alt="Message attachment"
+                                  className={styles.messageImage}
+                                />
+                              )}
+                              <div className={styles.chatFooter}>
+                                <div className={styles.chatTime}>
+                                  {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                                {msg.is_sent && (
+                                  <div className={styles.readReceipt}>
+                                    {msg.read ? '✓✓' : '✓'}
+                                    {msg.read && <span className={styles.readLabel}>Read</span>}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>
