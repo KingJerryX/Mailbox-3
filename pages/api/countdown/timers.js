@@ -34,21 +34,35 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'target_date and timezone are required' });
       }
 
+      // Validate date format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(target_date)) {
+        return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD' });
+      }
+
       // If recipient_id is provided, create timer for that user
       // Otherwise, create for current user
       const targetUserId = recipient_id ? parseInt(recipient_id) : user.id;
       const senderId = recipient_id ? user.id : null;
 
-      const timer = await mailbox.saveCountdownTimer(targetUserId, {
-        timer_name: timer_name || 'Time Until We Meet',
-        target_date,
-        target_time: target_time || null,
-        timezone,
-        enabled: true,
-        sender_id: senderId
-      });
+      try {
+        const timer = await mailbox.saveCountdownTimer(targetUserId, {
+          timer_name: timer_name || 'Time Until We Meet',
+          target_date,
+          target_time: target_time || null,
+          timezone,
+          enabled: true,
+          sender_id: senderId
+        });
 
-      return res.status(200).json({ timer });
+        return res.status(200).json({ timer });
+      } catch (dbError) {
+        console.error('Database error creating timer:', dbError);
+        return res.status(500).json({
+          error: 'Failed to create timer',
+          details: dbError.message
+        });
+      }
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

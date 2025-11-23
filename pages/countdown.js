@@ -165,7 +165,9 @@ export default function Countdown({ user, setUser }) {
         });
         fetchTimers();
       } else {
-        showNotification('Failed to create timer', 'error');
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Timer creation error:', errorData);
+        showNotification(`Failed to create timer: ${errorData.error || 'Unknown error'}`, 'error');
       }
     } catch (err) {
       console.error('Error saving timer:', err);
