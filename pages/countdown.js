@@ -505,7 +505,17 @@ export default function Countdown({ user, setUser }) {
                     </button>
                   </div>
                   <div className={styles.timerCardDate}>
-                    {new Date(timer.target_date).toLocaleDateString()}
+                    {(() => {
+                      // Parse date string manually to avoid timezone issues
+                      const dateStr = timer.target_date;
+                      if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        const date = new Date(year, month - 1, day);
+                        return date.toLocaleDateString();
+                      }
+                      // Fallback for other formats
+                      return new Date(dateStr).toLocaleDateString();
+                    })()}
                     {timer.target_time && ` at ${timer.target_time}`}
                   </div>
                   <div className={styles.timerCardTimezone}>{timer.timezone}</div>
