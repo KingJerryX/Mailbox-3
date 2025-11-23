@@ -1,4 +1,5 @@
 import { verifyToken } from '../../../lib/auth.js';
+import * as mailbox from '../../../lib/mailbox.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -17,10 +18,22 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
+  // Get full user data including is_admin from database
+  let isAdmin = false;
+  try {
+    const dbUser = await mailbox.getUserById(user.id);
+    isAdmin = dbUser ? (dbUser.is_admin === true) : (user.is_admin === true);
+  } catch (err) {
+    console.error('Error fetching user for verify:', err);
+    // Fallback to JWT token value
+    isAdmin = user.is_admin === true;
+  }
+
   res.status(200).json({
     user: {
       id: user.id,
       username: user.username,
+      is_admin: isAdmin,
     },
   });
 }

@@ -25,10 +25,17 @@ function MyApp({ Component, pageProps }) {
         .then(res => res.json())
         .then(data => {
           if (data.user) {
-            setUser(data.user);
+            // Ensure is_admin is always a boolean
+            const userData = {
+              ...data.user,
+              is_admin: data.user.is_admin === true
+            };
+            setUser(userData);
           }
         })
-        .catch(err => console.error(err))
+        .catch(err => {
+          console.error('Error verifying user:', err);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
