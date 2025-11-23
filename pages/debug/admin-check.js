@@ -46,31 +46,39 @@ export default function AdminCheck({ user, setUser }) {
     }
   };
 
+  const [adminSecret, setAdminSecret] = useState('');
+
   const makeAdmin = async () => {
-    if (!username) {
-      alert('Please enter a username');
+    const targetUsername = username || user.username;
+
+    if (!adminSecret) {
+      alert('Please enter ADMIN_SECRET. If you haven\'t set it in Vercel, you can use any value for initial setup.');
       return;
     }
 
     try {
       setLoading(true);
       const token = getToken();
-      const res = await fetch('/api/admin/set-admin', {
+      const res = await fetch('/api/setup/make-admin', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username })
+        body: JSON.stringify({
+          username: targetUsername,
+          adminSecret: adminSecret
+        })
       });
 
       const data = await res.json();
       if (res.ok) {
-        alert(`Success! ${username} is now an admin. Please refresh the page.`);
+        alert(`Success! ${targetUsername} is now an admin. Please log out and log back in to see the admin link.`);
         setUsername('');
+        setAdminSecret('');
         checkAdminStatus();
       } else {
-        alert(`Error: ${data.error}`);
+        alert(`Error: ${data.error}${data.hint ? '\n' + data.hint : ''}`);
       }
     } catch (err) {
       console.error('Error setting admin:', err);
@@ -152,22 +160,50 @@ export default function AdminCheck({ user, setUser }) {
           marginBottom: '20px'
         }}>
           <h2>Make User Admin</h2>
-          <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+          <div style={{
+            background: '#fff3cd',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            border: '1px solid #ffc107'
+          }}>
+            <strong>Setup Instructions:</strong>
+            <ol style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+              <li>Set <code>ADMIN_SECRET</code> in Vercel Environment Variables (optional for initial setup)</li>
+              <li>Enter the ADMIN_SECRET below (or any value if not set in Vercel)</li>
+              <li>Enter username (or leave blank to make yourself admin)</li>
+              <li>Click "Make Admin"</li>
+              <li>Log out and log back in to see the admin link</li>
+            </ol>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username to make admin"
+              type="password"
+              value={adminSecret}
+              onChange={(e) => setAdminSecret(e.target.value)}
+              placeholder="Enter ADMIN_SECRET (or any value for initial setup)"
               style={{
                 padding: '10px',
                 border: '2px solid #e5e7eb',
                 borderRadius: '8px',
-                flex: 1
+                width: '100%'
+              }}
+            />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={`Enter username (or leave blank for: ${user.username})`}
+              style={{
+                padding: '10px',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                width: '100%'
               }}
             />
             <button
               onClick={makeAdmin}
-              disabled={loading || !username}
+              disabled={loading || !adminSecret}
               style={{
                 padding: '12px 24px',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -176,15 +212,16 @@ export default function AdminCheck({ user, setUser }) {
                 borderRadius: '8px',
                 fontSize: '16px',
                 fontWeight: 600,
-                cursor: (loading || !username) ? 'not-allowed' : 'pointer',
-                opacity: (loading || !username) ? 0.6 : 1
+                cursor: (loading || !adminSecret) ? 'not-allowed' : 'pointer',
+                opacity: (loading || !adminSecret) ? 0.6 : 1
               }}
             >
               Make Admin
             </button>
           </div>
           <p style={{ marginTop: '10px', color: '#6b7280', fontSize: '14px' }}>
-            Note: You need to be an admin or provide ADMIN_SECRET to use this feature.
+            <strong>Note:</strong> If ADMIN_SECRET is not set in Vercel, you can use any value for initial setup.
+            After setting ADMIN_SECRET in Vercel, you must use that exact value.
           </p>
         </div>
       </div>
