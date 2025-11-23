@@ -4,25 +4,28 @@ import Head from 'next/head';
 import styles from '../styles/mailbox.module.css';
 
 export default function Mailbox({ user }) {
-  const [messages, setMessages] = useState([]);
+  const [threads, setThreads] = useState([]);
+  const [selectedThread, setSelectedThread] = useState(null);
+  const [threadMessages, setThreadMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mailboxDesign, setMailboxDesign] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
-  const [showCompose, setShowCompose] = useState(false);
   const [notification, setNotification] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyingContent, setReplyingContent] = useState('');
+  const [sending, setSending] = useState(false);
   const router = useRouter();
   const notificationTimeoutRef = useRef(null);
   const checkIntervalRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (!user) {
       router.push('/login');
       return;
     }
-    fetchData();
+    fetchThreads();
     loadMailboxDesign();
     startMessageChecking();
     return () => {
@@ -35,6 +38,18 @@ export default function Mailbox({ user }) {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (selectedThread) {
+      fetchThreadMessages(selectedThread.other_user_id);
+      // Auto-scroll to bottom when new messages arrive
+      scrollToBottom();
+    }
+  }, [selectedThread, threadMessages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const getToken = () => {
     return document.cookie
       .split('; ')
@@ -42,11 +57,11 @@ export default function Mailbox({ user }) {
       ?.split('=')[1];
   };
 
-  const fetchData = async () => {
+  const fetchThreads = async () => {
     try {
       const token = getToken();
-      const [messagesRes, unreadRes, usersRes] = await Promise.all([
-        fetch('/api/mailbox/messages', {
+      const [threadsRes, unreadRes, usersRes] = await Promise.all([
+        fetch('/api/mailbox/threads', {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
         fetch('/api/mailbox/unread', {
@@ -57,9 +72,9 @@ export default function Mailbox({ user }) {
         })
       ]);
 
-      if (messagesRes.ok) {
-        const data = await messagesRes.json();
-        setMessages(data.messages || []);
+      if (threadsRes.ok) {
+        const data = await threadsRes.json();
+        setThreads(data.threads || []);
       }
 
       if (unreadRes.ok) {
@@ -72,10 +87,35 @@ export default function Mailbox({ user }) {
         setUsers(data.users || []);
       }
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('Error fetching threads:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchThreadMessages = async (otherUserId) => {
+    try {
+      const token = getToken();
+      const res = await fetch(`/api/mailbox/thread?other_user_id=${otherUserId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setThreadMessages(data.messages || []);
+      }
+    } catch (err) {
+      console.error('Error fetching thread messages:', err);
+    }
+  };
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+    if (notificationTimeoutRef.current) {
+      clearTimeout(notificationTimeoutRef.current);
+    }
+    notificationTimeoutRef.current = setTimeout(() => {
+      setNotification(null);
+    }, 4000);
   };
 
   const loadMailboxDesign = async () => {
@@ -96,7 +136,6 @@ export default function Mailbox({ user }) {
   };
 
   const startMessageChecking = () => {
-    // Check for new messages every 10 seconds
     checkIntervalRef.current = setInterval(async () => {
       try {
         const token = getToken();
@@ -107,14 +146,14 @@ export default function Mailbox({ user }) {
           const data = await res.json();
           const newCount = data.count || 0;
 
-          setUnreadCount(prevCount => {
-            if (newCount > prevCount && prevCount > 0) {
-              // New message received!
-              showNotification('💌 New message received!', 'success');
-              fetchData(); // Refresh messages
+          if (newCount > unreadCount && unreadCount > 0) {
+            showNotification('💌 New message received!', 'success');
+            fetchThreads();
+            if (selectedThread) {
+              fetchThreadMessages(selectedThread.other_user_id);
             }
-            return newCount;
-          });
+          }
+          setUnreadCount(newCount);
         }
       } catch (err) {
         console.error('Error checking messages:', err);
@@ -122,21 +161,10 @@ export default function Mailbox({ user }) {
     }, 10000);
   };
 
-  const showNotification = (message, type = 'info') => {
-    setNotification({ message, type });
-    if (notificationTimeoutRef.current) {
-      clearTimeout(notificationTimeoutRef.current);
-    }
-    notificationTimeoutRef.current = setTimeout(() => {
-      setNotification(null);
-    }, 4000);
-  };
-
   const handleUploadDesign = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Check if file is JPG
     const isJPG = file.type === 'image/jpeg' ||
                   file.type === 'image/jpg' ||
                   file.name.toLowerCase().endsWith('.jpg') ||
@@ -144,11 +172,10 @@ export default function Mailbox({ user }) {
 
     if (!isJPG) {
       showNotification('⚠️ Only JPG files are allowed for mailbox design!', 'error');
-      event.target.value = ''; // Clear the input
+      event.target.value = '';
       return;
     }
 
-    // Convert to base64
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
@@ -185,23 +212,53 @@ export default function Mailbox({ user }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (!replyingContent.trim() || !selectedThread) return;
+
+    setSending(true);
+    try {
+      const token = getToken();
+      const res = await fetch('/api/mailbox/thread', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recipient_id: selectedThread.other_user_id,
+          content: replyingContent.trim()
+        })
+      });
+
+      if (res.ok) {
+        setReplyingContent('');
+        fetchThreadMessages(selectedThread.other_user_id);
+        fetchThreads();
+        scrollToBottom();
+      } else {
+        showNotification('Failed to send message', 'error');
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
+      showNotification('Error sending message', 'error');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleStartNewThread = async (e) => {
+    e.preventDefault();
     const formData = new FormData(e.target);
-    const recipientId = replyingTo ? replyingTo.sender_id : parseInt(formData.get('recipient'));
-    let content = formData.get('content').trim();
+    const recipientId = parseInt(formData.get('recipient'));
+    const content = formData.get('content').trim();
 
     if (!content) {
       showNotification('Please enter a message!', 'error');
       return;
     }
 
-    // If replying, prepend "Re: " and the original message
-    if (replyingTo) {
-      content = `Re: "${replyingTo.content.substring(0, 50)}${replyingTo.content.length > 50 ? '...' : ''}"\n\n${content}`;
-    }
-
     try {
       const token = getToken();
-      const res = await fetch('/api/mailbox/messages', {
+      const res = await fetch('/api/mailbox/thread', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -216,41 +273,21 @@ export default function Mailbox({ user }) {
       if (res.ok) {
         showNotification('💕 Message sent!', 'success');
         e.target.reset();
-        setShowCompose(false);
-        setReplyingTo(null);
-        fetchData();
+        fetchThreads();
+        // Open the new thread
+        const recipient = users.find(u => u.id === recipientId);
+        if (recipient) {
+          setSelectedThread({
+            other_user_id: recipientId,
+            other_username: recipient.username
+          });
+        }
       } else {
         showNotification('Failed to send message', 'error');
       }
     } catch (err) {
       console.error('Error sending message:', err);
       showNotification('Error sending message', 'error');
-    }
-  };
-
-  const handleReply = (message) => {
-    // Set the recipient to the sender of the message
-    setReplyingTo(message);
-    setShowCompose(true);
-  };
-
-  const handleMarkAsRead = async (messageId) => {
-    try {
-      const token = getToken();
-      const res = await fetch('/api/mailbox/messages', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message_id: messageId })
-      });
-
-      if (res.ok) {
-        fetchData();
-      }
-    } catch (err) {
-      console.error('Error marking as read:', err);
     }
   };
 
@@ -269,7 +306,7 @@ export default function Mailbox({ user }) {
       </Head>
 
       <div className={styles.container}>
-        {/* Cute Notification Popup */}
+        {/* Notification */}
         {notification && (
           <div className={`${styles.notification} ${styles[notification.type]}`}>
             <span className={styles.notificationIcon}>
@@ -300,22 +337,29 @@ export default function Mailbox({ user }) {
 
         {/* Action Buttons */}
         <div className={styles.actions}>
-          <button
-            className={styles.btnPrimary}
-            onClick={() => setShowCompose(!showCompose)}
-          >
-            ✉️ Write a Message
-          </button>
-          <button
-            className={styles.btnSecondary}
-            onClick={() => setShowUpload(!showUpload)}
-          >
-            🎨 Upload Mailbox Design
-          </button>
+          {!selectedThread && (
+            <button
+              className={styles.btnPrimary}
+              onClick={() => setShowUpload(!showUpload)}
+            >
+              🎨 Upload Mailbox Design
+            </button>
+          )}
+          {selectedThread && (
+            <button
+              className={styles.btnSecondary}
+              onClick={() => {
+                setSelectedThread(null);
+                setThreadMessages([]);
+              }}
+            >
+              ← Back to Threads
+            </button>
+          )}
         </div>
 
         {/* Upload Design Section */}
-        {showUpload && (
+        {showUpload && !selectedThread && (
           <div className={styles.uploadSection}>
             <h3>Choose a cute mailbox design</h3>
             <p style={{ color: '#666', fontSize: '14px', marginBottom: '10px' }}>
@@ -331,125 +375,148 @@ export default function Mailbox({ user }) {
           </div>
         )}
 
-        {/* Compose Message Section */}
-        {showCompose && (
-          <div className={styles.composeSection}>
-            <h3>{replyingTo ? '💬 Reply to Message' : '💕 Write a Message'}</h3>
-            <form onSubmit={handleSendMessage}>
-              {replyingTo ? (
-                <div style={{
-                  backgroundColor: '#f0f0f0',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  marginBottom: '15px'
-                }}>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                    Replying to: <strong>{replyingTo.sender_username}</strong>
-                  </p>
-                  <input type="hidden" name="recipient" value={replyingTo.sender_id} />
-                </div>
-              ) : (
-                <select name="recipient" required className={styles.select}>
-                  <option value="">Select recipient...</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>{u.username}</option>
-                  ))}
-                </select>
-              )}
-              <textarea
-                name="content"
-                placeholder={replyingTo ? "Type your reply here..." : "Type your sweet message here..."}
-                required
-                className={styles.textarea}
-                rows="5"
-              />
-              <button type="submit" className={styles.btnSend}>
-                {replyingTo ? 'Send Reply 💌' : 'Send 💌'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCompose(false);
-                  setReplyingTo(null);
-                }}
-                className={styles.btnCancel}
-              >
-                Cancel
-              </button>
-            </form>
+        {/* Thread List View */}
+        {!selectedThread && (
+          <div className={styles.mailboxContainer}>
+            <div
+              className={styles.mailbox}
+              style={{
+                backgroundImage: mailboxDesign
+                  ? `url(${mailboxDesign})`
+                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              <div className={styles.mailboxContent}>
+                {threads.length === 0 ? (
+                  <div className={styles.emptyMailbox}>
+                    <div className={styles.emptyIcon}>📭</div>
+                    <p>No conversations yet. Start by sending a sweet message! 💕</p>
+                    <form onSubmit={handleStartNewThread} style={{ marginTop: '20px', maxWidth: '400px' }}>
+                      <select name="recipient" required className={styles.select}>
+                        <option value="">Select recipient...</option>
+                        {users.map(u => (
+                          <option key={u.id} value={u.id}>{u.username}</option>
+                        ))}
+                      </select>
+                      <textarea
+                        name="content"
+                        placeholder="Type your sweet message here..."
+                        required
+                        className={styles.textarea}
+                        rows="3"
+                      />
+                      <button type="submit" className={styles.btnSend}>
+                        Send 💌
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className={styles.threadsList}>
+                    {threads.map(thread => (
+                      <div
+                        key={thread.other_user_id}
+                        className={`${styles.threadCard} ${thread.unread_count > 0 ? styles.unread : ''}`}
+                        onClick={() => setSelectedThread(thread)}
+                      >
+                        <div className={styles.threadHeader}>
+                          <span className={styles.threadUsername}>{thread.other_username}</span>
+                          {thread.unread_count > 0 && (
+                            <span className={styles.newBadge}>{thread.unread_count}</span>
+                          )}
+                          <span className={styles.threadTime}>
+                            {new Date(thread.last_message_time).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className={styles.threadPreview}>
+                          {thread.last_message.length > 50
+                            ? thread.last_message.substring(0, 50) + '...'
+                            : thread.last_message}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Mailbox Display */}
-        <div className={styles.mailboxContainer}>
-          <div
-            className={styles.mailbox}
-            style={{
-              backgroundImage: mailboxDesign
-                ? `url(${mailboxDesign})`
-                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            <div className={styles.mailboxContent}>
-              {messages.length === 0 ? (
-                <div className={styles.emptyMailbox}>
-                  <div className={styles.emptyIcon}>📭</div>
-                  <p>No messages yet. Start by sending a sweet message! 💕</p>
+        {/* Thread Chat View */}
+        {selectedThread && (
+          <div className={styles.mailboxContainer}>
+            <div
+              className={styles.mailbox}
+              style={{
+                backgroundImage: mailboxDesign
+                  ? `url(${mailboxDesign})`
+                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              <div className={styles.chatContainer}>
+                <div className={styles.chatHeader}>
+                  <h3>💬 {selectedThread.other_username}</h3>
                 </div>
-              ) : (
-                <div className={styles.messagesList}>
-                  {messages.map(msg => (
-                    <div
-                      key={msg.id}
-                      className={`${styles.messageCard} ${!msg.read ? styles.unread : ''}`}
-                      onClick={() => !msg.read && handleMarkAsRead(msg.id)}
-                    >
-                      <div className={styles.messageHeader}>
-                        <span className={styles.messageFrom}>
-                          From: {msg.sender_username || 'Someone'}
-                        </span>
-                        {!msg.read && <span className={styles.newBadge}>NEW</span>}
-                        <span className={styles.messageDate}>
-                          {new Date(msg.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className={styles.messageContent}>{msg.content}</div>
-                      {msg.image_url && (
-                        <img
-                          src={msg.image_url}
-                          alt="Message attachment"
-                          className={styles.messageImage}
-                        />
-                      )}
-                      {msg.recipient_id === user.id && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReply(msg);
-                          }}
-                          style={{
-                            marginTop: '10px',
-                            padding: '8px 16px',
-                            backgroundColor: '#667eea',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '14px'
-                          }}
-                        >
-                          💬 Reply
-                        </button>
-                      )}
+                <div className={styles.chatMessages}>
+                  {threadMessages.length === 0 ? (
+                    <div className={styles.emptyChat}>
+                      <p>No messages yet. Start the conversation! 💕</p>
                     </div>
-                  ))}
+                  ) : (
+                    threadMessages.map(msg => (
+                      <div
+                        key={msg.id}
+                        className={`${styles.chatMessage} ${msg.is_sent ? styles.sent : styles.received}`}
+                      >
+                        <div className={styles.chatBubble}>
+                          <div className={styles.chatContent}>{msg.content}</div>
+                          {msg.image_url && (
+                            <img
+                              src={msg.image_url}
+                              alt="Message attachment"
+                              className={styles.messageImage}
+                            />
+                          )}
+                          <div className={styles.chatTime}>
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
-              )}
+                <form onSubmit={handleSendMessage} className={styles.chatInput}>
+                  <textarea
+                    value={replyingContent}
+                    onChange={(e) => setReplyingContent(e.target.value)}
+                    placeholder="Type your message..."
+                    className={styles.chatTextarea}
+                    rows="2"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (replyingContent.trim() && !sending) {
+                          handleSendMessage(e);
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    className={styles.btnSend}
+                    disabled={!replyingContent.trim() || sending}
+                  >
+                    {sending ? 'Sending...' : 'Send 💌'}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
