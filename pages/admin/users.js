@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import styles from '../../styles/admin.module.css';
 
 export default function AdminUsers({ user, setUser }) {
   const [users, setUsers] = useState([]);
@@ -58,54 +57,134 @@ export default function AdminUsers({ user, setUser }) {
         <title>Admin - View Users 🔍 - FerryMail</title>
       </Head>
 
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>🔍 User Database</h1>
-          <p className={styles.subtitle}>View all registered users</p>
+      <div style={{
+        minHeight: '100vh',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        <div style={{ marginBottom: '30px' }}>
+          <h1 style={{ fontSize: '36px', color: '#667eea', margin: '0 0 8px 0' }}>🔍 User Database</h1>
+          <p style={{ fontSize: '18px', color: '#6b7280', margin: 0 }}>View all registered users</p>
         </div>
 
         {loading ? (
-          <div className={styles.loading}>Loading users...</div>
+          <div style={{ textAlign: 'center', padding: '40px', fontSize: '18px', color: '#667eea' }}>Loading users...</div>
         ) : error ? (
-          <div className={styles.error}>{error}</div>
+          <div style={{
+            background: '#fee',
+            color: '#c33',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            border: '1px solid #fcc'
+          }}>{error}</div>
         ) : (
           <>
-            <div className={styles.warning}>
+            <div style={{
+              background: '#fff3cd',
+              color: '#856404',
+              padding: '16px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              border: '1px solid #ffc107'
+            }}>
               <strong>⚠️ Security Note:</strong> Passwords are hashed using bcrypt and cannot be viewed in plain text. This is a security feature to protect user accounts.
             </div>
 
-            <div className={styles.stats}>
-              <div className={styles.statCard}>
-                <div className={styles.statValue}>{users.length}</div>
-                <div className={styles.statLabel}>Total Users</div>
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
+              <div style={{
+                background: 'white',
+                padding: '20px',
+                borderRadius: '12px',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                textAlign: 'center',
+                flex: 1
+              }}>
+                <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#667eea', marginBottom: '8px' }}>{users.length}</div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>Total Users</div>
               </div>
             </div>
 
-            <div className={styles.tableContainer}>
-              <table className={styles.usersTable}>
-                <thead>
+            <div style={{
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+              overflowX: 'auto',
+              marginBottom: '20px'
+            }}>
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse'
+              }}>
+                <thead style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white'
+                }}>
                   <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Password Hash</th>
-                    <th>Created At</th>
+                    <th style={{
+                      padding: '16px',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>ID</th>
+                    <th style={{
+                      padding: '16px',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>Username</th>
+                    <th style={{
+                      padding: '16px',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>Password Hash</th>
+                    <th style={{
+                      padding: '16px',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>Created At</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className={styles.noData}>No users found</td>
+                      <td colSpan="4" style={{
+                        textAlign: 'center',
+                        padding: '40px',
+                        color: '#9ca3af',
+                        fontStyle: 'italic'
+                      }}>No users found</td>
                     </tr>
                   ) : (
                     users.map(u => (
-                      <tr key={u.id}>
-                        <td>{u.id}</td>
-                        <td className={styles.username}>{u.username}</td>
-                        <td className={styles.passwordHash}>
-                          <code>{u.password_hash.substring(0, 30)}...</code>
-                          <small>(bcrypt hash, cannot be reversed)</small>
+                      <tr key={u.id} style={{
+                        borderBottom: '1px solid #e5e7eb'
+                      }}>
+                        <td style={{ padding: '16px', fontSize: '14px' }}>{u.id}</td>
+                        <td style={{ padding: '16px', fontSize: '14px', fontWeight: 600, color: '#667eea' }}>{u.username}</td>
+                        <td style={{ padding: '16px', fontSize: '14px' }}>
+                          <code style={{
+                            fontFamily: "'Courier New', monospace",
+                            fontSize: '12px',
+                            color: '#6b7280',
+                            display: 'block',
+                            marginBottom: '4px'
+                          }}>{u.password_hash.substring(0, 30)}...</code>
+                          <small style={{ color: '#9ca3af', fontStyle: 'italic' }}>(bcrypt hash, cannot be reversed)</small>
                         </td>
-                        <td>{new Date(u.created_at).toLocaleString()}</td>
+                        <td style={{ padding: '16px', fontSize: '14px' }}>{new Date(u.created_at).toLocaleString()}</td>
                       </tr>
                     ))
                   )}
@@ -113,8 +192,21 @@ export default function AdminUsers({ user, setUser }) {
               </table>
             </div>
 
-            <div className={styles.actions}>
-              <button onClick={fetchUsers} className={styles.refreshBtn}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={fetchUsers}
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
                 🔄 Refresh
               </button>
             </div>
