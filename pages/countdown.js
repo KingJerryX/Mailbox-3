@@ -46,12 +46,6 @@ export default function Countdown({ user, setUser }) {
       ?.split('=')[1];
   };
 
-  const logout = () => {
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    setUser(null);
-    router.push('/login');
-  };
-
   const fetchTimers = async () => {
     try {
       const token = getToken();
@@ -208,19 +202,6 @@ export default function Countdown({ user, setUser }) {
   if (!user) {
     return null;
   }
-
-  const getToken = () => {
-    return document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1];
-  };
-
-  const logout = () => {
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    setUser(null);
-    router.push('/login');
-  };
 
   return (
     <>
