@@ -75,7 +75,45 @@ export default function Games({ user, setUser }) {
           <p className={styles.subtitle}>Play fun games together!</p>
         </div>
 
-        {/* Stats Section */}
+        {/* Pending Games - Moved to Top */}
+        {pendingGames.length > 0 && (
+          <div className={styles.pendingSection}>
+            <h2 className={styles.sectionTitle}>📬 Pending Games</h2>
+            <div className={styles.pendingGamesList}>
+              {pendingGames.map(game => (
+                <Link
+                  key={game.id}
+                  href={`/games/two-truths/play/${game.id}`}
+                  className={styles.pendingGameCard}
+                >
+                  <div className={styles.pendingGameHeader}>
+                    <span className={styles.pendingGameFrom}>
+                      From: {game.creator_username}
+                    </span>
+                    <span className={styles.pendingGameDate}>
+                      {new Date(game.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className={styles.pendingGameAction}>Play Now →</div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Game Cards */}
+        <div className={styles.gamesGrid}>
+          <Link href="/games/two-truths/create" className={styles.gameCard}>
+            <div className={styles.gameIcon}>🎯</div>
+            <h3 className={styles.gameTitle}>Two Truths & a Lie</h3>
+            <p className={styles.gameDescription}>
+              Create a game with 2 truths and 1 lie, then challenge your partner to guess!
+            </p>
+            <div className={styles.gameAction}>Create Game →</div>
+          </Link>
+        </div>
+
+        {/* Stats Section - Moved to Bottom and Smaller */}
         <div className={styles.statsCard}>
           <h2 className={styles.statsTitle}>Two Truths & a Lie Stats</h2>
           <div className={styles.statsGrid}>
@@ -101,44 +139,6 @@ export default function Games({ user, setUser }) {
             </div>
           )}
         </div>
-
-        {/* Game Cards */}
-        <div className={styles.gamesGrid}>
-          <Link href="/games/two-truths/create" className={styles.gameCard}>
-            <div className={styles.gameIcon}>🎯</div>
-            <h3 className={styles.gameTitle}>Two Truths & a Lie</h3>
-            <p className={styles.gameDescription}>
-              Create a game with 2 truths and 1 lie, then challenge your partner to guess!
-            </p>
-            <div className={styles.gameAction}>Create Game →</div>
-          </Link>
-        </div>
-
-        {/* Pending Games */}
-        {pendingGames.length > 0 && (
-          <div className={styles.pendingSection}>
-            <h2 className={styles.sectionTitle}>📬 Pending Games</h2>
-            <div className={styles.pendingGamesList}>
-              {pendingGames.map(game => (
-                <Link
-                  key={game.id}
-                  href={`/games/two-truths/play/${game.id}`}
-                  className={styles.pendingGameCard}
-                >
-                  <div className={styles.pendingGameHeader}>
-                    <span className={styles.pendingGameFrom}>
-                      From: {game.creator_username}
-                    </span>
-                    <span className={styles.pendingGameDate}>
-                      {new Date(game.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className={styles.pendingGameAction}>Play Now →</div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
