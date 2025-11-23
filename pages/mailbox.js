@@ -164,6 +164,95 @@ export default function Mailbox({ user }) {
   };
 
 
+  const loadUnseenLoveNotes = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/love-notes/unseen', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.notes && data.notes.length > 0) {
+          setLoveNotes(data.notes);
+
+          // Mark notes as seen after 5 seconds
+          setTimeout(async () => {
+            const noteIds = data.notes.map(note => note.id);
+            try {
+              const token = getToken();
+              await fetch('/api/love-notes/mark-seen', {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ noteIds })
+              });
+            } catch (err) {
+              console.error('Error marking notes as seen:', err);
+            }
+          }, 5000);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading love notes:', err);
+    }
+  };
+
+  const handleCreateLoveNote = async (e) => {
+    e.preventDefault();
+    if (!loveNoteForm.receiverId || !loveNoteForm.content) {
+      showNotification('Please fill in recipient and message!', 'error');
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const res = await fetch('/api/love-notes', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          receiverId: parseInt(loveNoteForm.receiverId),
+          content: loveNoteForm.content,
+          bgColor: loveNoteForm.bgColor
+        })
+      });
+
+      if (res.ok) {
+        showNotification('💕 Love note sent!', 'success');
+        setShowLoveNoteModal(false);
+        setLoveNoteForm({
+          receiverId: '',
+          content: '',
+          bgColor: '#FFF7D1'
+        });
+      } else {
+        showNotification('Failed to send love note', 'error');
+      }
+    } catch (err) {
+      console.error('Error creating love note:', err);
+      showNotification('Error sending love note', 'error');
+    }
+  };
+
+  const handleDismissNote = (noteId) => {
+    setLoveNotes(prev => prev.filter(note => note.id !== noteId));
+
+    // Mark as seen
+    const token = getToken();
+    fetch('/api/love-notes/mark-seen', {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ noteIds: [noteId] })
+    }).catch(err => console.error('Error marking note as seen:', err));
+  };
+
   const startMessageChecking = () => {
     checkIntervalRef.current = setInterval(async () => {
       try {
