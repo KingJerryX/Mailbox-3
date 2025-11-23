@@ -17,6 +17,16 @@ export default function Mailbox({ user }) {
   const [sending, setSending] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [countdownTimer, setCountdownTimer] = useState(null);
+  const [countdownDisplay, setCountdownDisplay] = useState('');
+  const [showTimerSettings, setShowTimerSettings] = useState(false);
+  const [timerForm, setTimerForm] = useState({
+    timer_name: '',
+    target_date: '',
+    target_time: '',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    show_large: false
+  });
   const router = useRouter();
   const notificationTimeoutRef = useRef(null);
   const checkIntervalRef = useRef(null);
@@ -30,7 +40,9 @@ export default function Mailbox({ user }) {
     }
     fetchThreads();
     loadMailboxDesign();
+    loadCountdownTimer();
     startMessageChecking();
+    startCountdownUpdate();
     return () => {
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
@@ -153,6 +165,130 @@ export default function Mailbox({ user }) {
       }
     } catch (err) {
       console.error('Error loading mailbox design:', err);
+    }
+  };
+
+  const loadCountdownTimer = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/countdown/timer', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.timer) {
+          setCountdownTimer(data.timer);
+          if (data.timer.timer_name) {
+            setTimerForm(prev => ({ ...prev, timer_name: data.timer.timer_name }));
+          }
+          if (data.timer.show_large !== undefined) {
+            setTimerForm(prev => ({ ...prev, show_large: data.timer.show_large }));
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error loading countdown timer:', err);
+    }
+  };
+
+  const calculateCountdown = () => {
+    if (!countdownTimer) {
+      setCountdownDisplay('');
+      return;
+    }
+
+    try {
+      // Get current time
+      const now = new Date();
+
+      // Create target date/time string in the target timezone
+      const timeStr = countdownTimer.target_time || '00:00:00';
+      const dateTimeStr = `${countdownTimer.target_date}T${timeStr}`;
+
+      // Create date assuming it's in the target timezone
+      // We'll use a workaround: create date string and parse it
+      const targetDateStr = `${countdownTimer.target_date} ${timeStr}`;
+
+      // Get current time in target timezone
+      const nowInTZ = new Date(now.toLocaleString('en-US', { timeZone: countdownTimer.timezone }));
+      const nowUTC = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const tzOffset = nowUTC.getTime() - nowInTZ.getTime();
+
+      // Create target date (treat as local first)
+      const targetLocal = new Date(targetDateStr);
+      // Adjust to UTC by subtracting timezone offset
+      const targetUTC = new Date(targetLocal.getTime() - tzOffset);
+
+      const diff = targetUTC.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setCountdownDisplay('Time\'s up! 💕');
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 1) {
+        setCountdownDisplay(`${days} day${days !== 1 ? 's' : ''}`);
+      } else if (days === 1) {
+        setCountdownDisplay(`${hours} hour${hours !== 1 ? 's' : ''}`);
+      } else {
+        setCountdownDisplay(`${hours}h ${minutes}m ${seconds}s`);
+      }
+    } catch (err) {
+      console.error('Error calculating countdown:', err);
+      setCountdownDisplay('');
+    }
+  };
+
+  const startCountdownUpdate = () => {
+    calculateCountdown();
+    const interval = setInterval(() => {
+      calculateCountdown();
+    }, 1000);
+    return () => clearInterval(interval);
+  };
+
+  const handleSaveTimer = async (e) => {
+    e.preventDefault();
+    if (!timerForm.target_date || !timerForm.timezone) {
+      showNotification('Please fill in date and timezone!', 'error');
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const res = await fetch('/api/countdown/timer', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          timer_name: timerForm.timer_name || 'Time Until We Meet',
+          target_date: timerForm.target_date,
+          target_time: timerForm.target_time || null,
+          timezone: timerForm.timezone,
+          show_large: timerForm.show_large,
+          enabled: true
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCountdownTimer(data.timer);
+        setShowTimerSettings(false);
+        showNotification('✨ Countdown timer saved!', 'success');
+        calculateCountdown();
+      } else {
+        showNotification('Failed to save timer', 'error');
+      }
+    } catch (err) {
+      console.error('Error saving timer:', err);
+      showNotification('Error saving timer', 'error');
     }
   };
 
@@ -504,6 +640,14 @@ export default function Mailbox({ user }) {
         {/* Thread Chat View */}
         {selectedThread && (
           <div className={styles.mailboxContainer}>
+            {/* Large Countdown Display */}
+            {countdownTimer && countdownTimer.show_large && countdownDisplay && (
+              <div className={styles.largeCountdown}>
+                <div className={styles.largeCountdownTitle}>{countdownTimer.timer_name}</div>
+                <div className={styles.largeCountdownTime}>{countdownDisplay}</div>
+              </div>
+            )}
+
             <div
               className={styles.mailbox}
               style={{
@@ -518,13 +662,22 @@ export default function Mailbox({ user }) {
                 <div className={styles.chatContainer}>
                   <div className={styles.chatHeader}>
                     <h3>💬 {selectedThread.other_username}</h3>
-                    <button
-                      className={styles.sidebarToggle}
-                      onClick={() => setSidebarOpen(!sidebarOpen)}
-                      title={sidebarOpen ? 'Close quick messages' : 'Open quick messages'}
-                    >
-                      {sidebarOpen ? '✕' : '💌'}
-                    </button>
+                    <div className={styles.chatHeaderButtons}>
+                      <button
+                        className={styles.timerToggle}
+                        onClick={() => setShowTimerSettings(!showTimerSettings)}
+                        title="Timer settings"
+                      >
+                        ⏰
+                      </button>
+                      <button
+                        className={styles.sidebarToggle}
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        title={sidebarOpen ? 'Close quick messages' : 'Open quick messages'}
+                      >
+                        {sidebarOpen ? '✕' : '💌'}
+                      </button>
+                    </div>
                   </div>
                 <div
                   className={styles.chatMessages}
@@ -613,10 +766,111 @@ export default function Mailbox({ user }) {
                   </form>
                 </div>
 
+                {/* Timer Settings Panel */}
+                {showTimerSettings && (
+                  <div className={styles.timerSidebar}>
+                    <h4 className={styles.presetTitle}>Countdown Timer ⏰</h4>
+                    {countdownTimer && countdownDisplay && (
+                      <div className={styles.countdownPreview}>
+                        <div className={styles.countdownName}>{countdownTimer.timer_name}</div>
+                        <div className={styles.countdownTime}>{countdownDisplay}</div>
+                      </div>
+                    )}
+                    <form onSubmit={handleSaveTimer} className={styles.timerForm}>
+                      <label>
+                        Timer Name
+                        <input
+                          type="text"
+                          value={timerForm.timer_name}
+                          onChange={(e) => setTimerForm({ ...timerForm, timer_name: e.target.value })}
+                          placeholder="e.g., TIME TILL KISS"
+                          className={styles.timerInput}
+                        />
+                      </label>
+                      <label>
+                        Date *
+                        <input
+                          type="date"
+                          value={timerForm.target_date}
+                          onChange={(e) => setTimerForm({ ...timerForm, target_date: e.target.value })}
+                          required
+                          className={styles.timerInput}
+                        />
+                      </label>
+                      <label>
+                        Time (Optional)
+                        <input
+                          type="time"
+                          value={timerForm.target_time}
+                          onChange={(e) => setTimerForm({ ...timerForm, target_time: e.target.value })}
+                          className={styles.timerInput}
+                        />
+                      </label>
+                      <label>
+                        Timezone *
+                        <select
+                          value={timerForm.timezone}
+                          onChange={(e) => setTimerForm({ ...timerForm, timezone: e.target.value })}
+                          required
+                          className={styles.timerInput}
+                        >
+                          {Intl.supportedValuesOf('timeZone').map(tz => (
+                            <option key={tz} value={tz}>{tz}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={timerForm.show_large}
+                          onChange={(e) => setTimerForm({ ...timerForm, show_large: e.target.checked })}
+                        />
+                        Show large timer above chatbox
+                      </label>
+                      <button type="submit" className={styles.btnSend}>
+                        Save Timer ⏰
+                      </button>
+                      {countdownTimer && (
+                        <button
+                          type="button"
+                          className={styles.btnCancel}
+                          onClick={async () => {
+                            try {
+                              const token = getToken();
+                              await fetch('/api/countdown/timer', {
+                                method: 'POST',
+                                headers: {
+                                  'Authorization': `Bearer ${token}`,
+                                  'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ ...countdownTimer, enabled: false })
+                              });
+                              setCountdownTimer(null);
+                              setCountdownDisplay('');
+                              setShowTimerSettings(false);
+                              showNotification('Timer disabled', 'success');
+                            } catch (err) {
+                              console.error('Error disabling timer:', err);
+                            }
+                          }}
+                        >
+                          Disable Timer
+                        </button>
+                      )}
+                    </form>
+                  </div>
+                )}
+
                 {/* Preset Messages Sidebar */}
                 {sidebarOpen && (
                   <div className={styles.presetSidebar}>
                     <h4 className={styles.presetTitle}>Quick Messages 💌</h4>
+                    {countdownTimer && countdownDisplay && (
+                      <div className={styles.countdownMini}>
+                        <div className={styles.countdownMiniName}>{countdownTimer.timer_name}</div>
+                        <div className={styles.countdownMiniTime}>{countdownDisplay}</div>
+                      </div>
+                    )}
                     <div className={styles.presetButtons}>
                       <button
                         className={styles.presetBtn}

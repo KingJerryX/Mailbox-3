@@ -518,6 +518,130 @@
   flex: 1;
 }
 
+/* Large Countdown Display */
+.largeCountdown {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.largeCountdownTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.largeCountdownTime {
+  font-size: 48px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Timer Sidebar */
+.timerSidebar {
+  width: 280px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+  animation: slideInRight 0.3s ease-out;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.timerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.timerForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.timerInput {
+  padding: 10px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.3s;
+}
+
+.timerInput:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.checkboxLabel {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.countdownPreview {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.countdownName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.countdownTime {
+  font-size: 24px;
+  font-weight: bold;
+  color: #764ba2;
+}
+
+.countdownMini {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.countdownMiniName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.countdownMiniTime {
+  font-size: 18px;
+  font-weight: bold;
+  color: #764ba2;
+}
+
 /* Preset Messages Sidebar */
 .presetSidebar {
   width: 220px;
@@ -602,7 +726,15 @@
   flex: 1;
 }
 
-.sidebarToggle {
+.chatHeaderButtons {
+  display: flex;
+  gap: 10px;
+  position: absolute;
+  right: 20px;
+}
+
+.sidebarToggle,
+.timerToggle {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -611,11 +743,10 @@
   cursor: pointer;
   font-size: 18px;
   transition: all 0.3s ease;
-  position: absolute;
-  right: 20px;
 }
 
-.sidebarToggle:hover {
+.sidebarToggle:hover,
+.timerToggle:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.1);
