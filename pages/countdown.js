@@ -87,18 +87,85 @@ export default function Countdown({ user, setUser }) {
 
     try {
       const now = new Date();
-      const timeStr = selectedTimer.target_time || '00:00:00';
-      const dateTimeStr = `${selectedTimer.target_date}T${timeStr}`;
-      const targetDateStr = `${selectedTimer.target_date} ${timeStr}`;
+      const timeStr = selectedTimer.target_time || '00:00';
 
-      const nowInTZ = new Date(now.toLocaleString('en-US', { timeZone: selectedTimer.timezone }));
-      const nowUTC = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-      const tzOffset = nowUTC.getTime() - nowInTZ.getTime();
+      // Parse date and time components
+      const [year, month, day] = selectedTimer.target_date.split('-').map(Number);
+      const timeParts = timeStr.split(':');
+      const hour = parseInt(timeParts[0]) || 0;
+      const minute = parseInt(timeParts[1]) || 0;
+      const second = parseInt(timeParts[2]) || 0;
 
-      const targetLocal = new Date(targetDateStr);
-      const targetUTC = new Date(targetLocal.getTime() - tzOffset);
+      if (isNaN(year) || isNaN(month) || isNaN(day)) {
+        console.error('Invalid date:', selectedTimer.target_date);
+        setCountdownDisplay('Invalid date');
+        return;
+      }
 
+      // Build target date/time string in ISO format
+      const targetDateTimeStr = `${selectedTimer.target_date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+
+      // Create date object - this creates it in local timezone
+      const targetDateLocal = new Date(targetDateTimeStr);
+
+      if (isNaN(targetDateLocal.getTime())) {
+        console.error('Invalid date object:', targetDateTimeStr);
+        setCountdownDisplay('Invalid date');
+        return;
+      }
+
+      // Calculate timezone offset for the target timezone
+      // We'll use a method that works: get the offset by comparing how the same moment
+      // appears in UTC vs the target timezone
+
+      // Get current time in target timezone (as a string, then parse components)
+      const nowInTZStr = now.toLocaleString('en-US', {
+        timeZone: selectedTimer.timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+
+      // Parse the formatted string to get components
+      const nowInTZMatch = nowInTZStr.match(/(\d+)\/(\d+)\/(\d+), (\d+):(\d+):(\d+)/);
+      if (!nowInTZMatch) {
+        console.error('Failed to parse timezone string:', nowInTZStr);
+        setCountdownDisplay('Error calculating');
+        return;
+      }
+
+      const [, tzMonth, tzDay, tzYear, tzHour, tzMinute, tzSecond] = nowInTZMatch.map(Number);
+      const nowInTZDate = new Date(tzYear, tzMonth - 1, tzDay, tzHour, tzMinute, tzSecond);
+
+      // Calculate offset
+      const offset = now.getTime() - nowInTZDate.getTime();
+
+      // Create target date in target timezone (treat as local)
+      const targetInTZDate = new Date(year, month - 1, day, hour, minute, second);
+
+      // Convert to UTC by adding the offset
+      const targetUTC = new Date(targetInTZDate.getTime() + offset);
+
+      // Calculate difference
       const diff = targetUTC.getTime() - now.getTime();
+
+      if (isNaN(diff)) {
+        console.error('NaN in diff calculation:', {
+          targetDate: selectedTimer.target_date,
+          targetTime: selectedTimer.target_time,
+          timezone: selectedTimer.timezone,
+          targetInTZDate: targetInTZDate.toString(),
+          targetUTC: targetUTC.toString(),
+          now: now.toString(),
+          offset
+        });
+        setCountdownDisplay('Error calculating');
+        return;
+      }
 
       if (diff <= 0) {
         setCountdownDisplay('Time\'s up! 💕');
@@ -110,6 +177,12 @@ export default function Countdown({ user, setUser }) {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
+      if (isNaN(days) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+        console.error('NaN in time calculation:', { days, hours, minutes, seconds, diff });
+        setCountdownDisplay('Error calculating');
+        return;
+      }
+
       if (days > 1) {
         setCountdownDisplay(`${days} day${days !== 1 ? 's' : ''}`);
       } else if (days === 1) {
@@ -118,8 +191,10 @@ export default function Countdown({ user, setUser }) {
         setCountdownDisplay(`${hours}h ${minutes}m ${seconds}s`);
       }
     } catch (err) {
-      console.error('Error calculating countdown:', err);
-      setCountdownDisplay('');
+      console.error('Error calculating countdown:', err, {
+        timer: selectedTimer
+      });
+      setCountdownDisplay('Error calculating');
     }
   };
 
