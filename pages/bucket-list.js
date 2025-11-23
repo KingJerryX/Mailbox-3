@@ -93,26 +93,33 @@ export default function BucketList({ user, setUser }) {
   const handleToggleComplete = async (itemId, currentStatus) => {
     try {
       const token = getToken();
+      const newStatus = !currentStatus;
       const res = await fetch(`/api/bucket-list/${itemId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ isCompleted: !currentStatus })
+        body: JSON.stringify({ isCompleted: newStatus })
       });
 
       if (res.ok) {
-        if (!currentStatus) {
+        const data = await res.json();
+        if (newStatus) {
           showNotification('🎉 Item completed!', 'success');
+        } else {
+          showNotification('Item marked as incomplete', 'success');
         }
-        fetchItems();
+        // Refresh items to update the display
+        await fetchItems();
       } else {
-        showNotification('Failed to update item', 'error');
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Update failed:', errorData);
+        showNotification(`Failed to update item: ${errorData.message || errorData.error}`, 'error');
       }
     } catch (err) {
       console.error('Error updating item:', err);
-      showNotification('Error updating item', 'error');
+      showNotification(`Error updating item: ${err.message}`, 'error');
     }
   };
 
