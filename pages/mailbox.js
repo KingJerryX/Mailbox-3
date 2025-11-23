@@ -15,10 +15,12 @@ export default function Mailbox({ user }) {
   const [loading, setLoading] = useState(true);
   const [replyingContent, setReplyingContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const router = useRouter();
   const notificationTimeoutRef = useRef(null);
   const checkIntervalRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const chatMessagesRef = useRef(null);
 
   useEffect(() => {
     if (!user) {
@@ -41,13 +43,31 @@ export default function Mailbox({ user }) {
   useEffect(() => {
     if (selectedThread) {
       fetchThreadMessages(selectedThread.other_user_id);
-      // Auto-scroll to bottom when new messages arrive
+      setShouldAutoScroll(true); // Reset when thread changes
+    }
+  }, [selectedThread]);
+
+  useEffect(() => {
+    // Only auto-scroll if user hasn't scrolled up
+    if (selectedThread && shouldAutoScroll && threadMessages.length > 0) {
       scrollToBottom();
     }
-  }, [selectedThread, threadMessages]);
+  }, [threadMessages, selectedThread, shouldAutoScroll]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleScroll = () => {
+    if (!chatMessagesRef.current) return;
+
+    const element = chatMessagesRef.current;
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+
+    // Only auto-scroll if user is near the bottom
+    setShouldAutoScroll(isNearBottom);
   };
 
   const getToken = () => {
@@ -231,9 +251,9 @@ export default function Mailbox({ user }) {
 
       if (res.ok) {
         setReplyingContent('');
+        setShouldAutoScroll(true); // Enable auto-scroll when sending
         fetchThreadMessages(selectedThread.other_user_id);
         fetchThreads();
-        scrollToBottom();
       } else {
         showNotification('Failed to send message', 'error');
       }
@@ -460,7 +480,11 @@ export default function Mailbox({ user }) {
                 <div className={styles.chatHeader}>
                   <h3>💬 {selectedThread.other_username}</h3>
                 </div>
-                <div className={styles.chatMessages}>
+                <div
+                  className={styles.chatMessages}
+                  ref={chatMessagesRef}
+                  onScroll={handleScroll}
+                >
                   {threadMessages.length === 0 ? (
                     <div className={styles.emptyChat}>
                       <p>No messages yet. Start the conversation! 💕</p>
