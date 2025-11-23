@@ -21,6 +21,9 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/bucket-list" className={styles.link}>
                   💫 Bucket List
                 </Link>
+                <Link href="/games" className={styles.link}>
+                  🎮 Games
+                </Link>
                 <Link href="/settings" className={styles.link}>
                   ⚙️ Settings
                 </Link>

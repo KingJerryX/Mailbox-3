@@ -1,0 +1,492 @@
+.container {
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.backButton {
+  padding: 8px 16px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.backButton:hover {
+  background: #667eea;
+  color: white;
+  transform: translateX(-2px);
+}
+
+.title {
+  font-size: 36px;
+  color: #667eea;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Stats Card */
+.statsCard {
+  background: white;
+  padding: 24px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.statsTitle {
+  font-size: 24px;
+  color: #667eea;
+  margin: 0 0 20px 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.statItem {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.statValue {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.progressBar {
+  width: 100%;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.5s ease;
+}
+
+/* Games Grid */
+.gamesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.gameCard {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.gameCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.gameIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.gameTitle {
+  font-size: 24px;
+  color: #667eea;
+  margin: 0 0 12px 0;
+}
+
+.gameDescription {
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  flex: 1;
+}
+
+.gameAction {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Pending Games */
+.pendingSection {
+  margin-top: 40px;
+}
+
+.sectionTitle {
+  font-size: 28px;
+  color: #667eea;
+  margin: 0 0 20px 0;
+}
+
+.pendingGamesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pendingGameCard {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pendingGameCard:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.pendingGameHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pendingGameFrom {
+  font-weight: 600;
+  color: #374151;
+  font-size: 16px;
+}
+
+.pendingGameDate {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.pendingGameAction {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Form Card */
+.formCard {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.select,
+.textarea {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.submitButton {
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.submitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Play Card */
+.playCard {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.playTitle {
+  font-size: 28px;
+  color: #667eea;
+  text-align: center;
+  margin: 0 0 30px 0;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.optionCard {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 30px;
+  border-radius: 15px;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.optionCard:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.optionCard:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.optionCard.selected {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
+}
+
+.optionNumber {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.optionText {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Result Card */
+.resultCard {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.resultTitle {
+  font-size: 42px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.resultTitle.correct {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.resultTitle.incorrect {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.resultDetails {
+  margin-bottom: 30px;
+}
+
+.resultMessage {
+  font-size: 20px;
+  color: #374151;
+  margin-bottom: 24px;
+}
+
+.realLie {
+  background: #fef3c7;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 2px solid #fbbf24;
+}
+
+.realLie strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #92400e;
+  font-size: 16px;
+}
+
+.lieText {
+  font-size: 20px;
+  color: #78350f;
+  font-weight: 600;
+}
+
+.choiceLabel {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.optionCard.correctChoice {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981;
+}
+
+.optionCard.wrongChoice {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #ef4444;
+}
+
+.optionCard.realLieCard {
+  border: 4px solid #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.3);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.errorCard,
+.errorMessage {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 24px;
+  color: #667eea;
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  z-index: 4000;
+  animation: slideInRight 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.notification.success {
+  background: #10b981;
+}
+
+.notification.error {
+  background: #ef4444;
+}
+
+.notification.info {
+  background: #3b82f6;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .gameCard {
+    padding: 20px;
+  }
+}
