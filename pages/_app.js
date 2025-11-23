@@ -1,6 +1,7 @@
 import '../styles/globals.css';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import Layout from '../components/Layout';
 
 function MyApp({ Component, pageProps }) {
@@ -56,9 +57,16 @@ function MyApp({ Component, pageProps }) {
   }
 
   return (
-    <Layout user={user} logout={logout}>
-      <Component {...pageProps} user={user} setUser={setUser} />
-    </Layout>
+    <>
+      <Head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+      </Head>
+      <Layout user={user} logout={logout}>
+        <Component {...pageProps} user={user} setUser={setUser} />
+      </Layout>
+    </>
   );
 }
 
