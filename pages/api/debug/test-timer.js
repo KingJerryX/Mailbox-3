@@ -1,5 +1,5 @@
 import { verifyToken } from '../../../lib/auth.js';
-import { sql, ensureDatabaseInitialized } from '../../../lib/db.js';
+import * as db from '../../../lib/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -18,10 +18,10 @@ export default async function handler(req, res) {
   const testUserId = user ? user.id : 1;
 
   try {
-    await ensureDatabaseInitialized();
+    await db.ensureDatabaseInitialized();
 
     // Test if table exists
-    const tableCheck = await sql`
+    const tableCheck = await db.sql`
       SELECT EXISTS (
         SELECT FROM information_schema.tables
         WHERE table_schema = 'public'
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     `;
 
     // Test table structure
-    const columns = await sql`
+    const columns = await db.sql`
       SELECT column_name, data_type, is_nullable
       FROM information_schema.columns
       WHERE table_name = 'countdown_timers'
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     if (user) {
       try {
         const testDate = new Date().toISOString().split('T')[0];
-        const testResult = await sql`
+        const testResult = await db.sql`
           INSERT INTO countdown_timers (user_id, timer_name, target_date, timezone, enabled)
           VALUES (${user.id}, 'Test Timer', ${testDate}, 'UTC', false)
           RETURNING id
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
         const testId = testResult.rows[0].id;
 
         // Clean up test record
-        await sql`
+        await db.sql`
           DELETE FROM countdown_timers WHERE id = ${testId}
         `;
 
