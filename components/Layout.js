@@ -2,6 +2,27 @@ import Link from 'next/link';
 import styles from './Layout.module.css';
 
 export default function Layout({ children, user, logout }) {
+  // Determine if user is admin - check all possible formats
+  const isAdmin = user && (
+    user.is_admin === true ||
+    user.is_admin === 'true' ||
+    user.is_admin === 1 ||
+    user.is_admin === '1' ||
+    user.is_admin === 't' ||
+    (typeof user.is_admin === 'string' && user.is_admin.toLowerCase() === 'true') ||
+    Boolean(user.is_admin) === true
+  );
+
+  // Debug logging (remove in production if needed)
+  if (typeof window !== 'undefined' && user) {
+    console.log('Layout - Admin check:', {
+      isAdmin,
+      'user.is_admin': user.is_admin,
+      'typeof': typeof user.is_admin,
+      'Boolean(user.is_admin)': Boolean(user.is_admin)
+    });
+  }
+
   return (
     <div>
       <nav className={styles.nav}>
@@ -27,23 +48,11 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/settings" className={styles.link}>
                   ⚙️ Settings
                 </Link>
-                {(() => {
-                  // Check if user is admin - handle various formats
-                  const isAdmin = user.is_admin === true ||
-                                 user.is_admin === 'true' ||
-                                 user.is_admin === 1 ||
-                                 user.is_admin === '1' ||
-                                 (typeof user.is_admin === 'string' && user.is_admin.toLowerCase() === 'true');
-
-                  if (isAdmin) {
-                    return (
-                      <Link href="/admin/users" className={styles.link}>
-                        🔍 Admin
-                      </Link>
-                    );
-                  }
-                  return null;
-                })()}
+                {isAdmin && (
+                  <Link href="/admin/users" className={styles.link}>
+                    🔍 Admin
+                  </Link>
+                )}
                 <span className={styles.userInfo}>
                   👤 {user.username}
                 </span>

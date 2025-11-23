@@ -27,10 +27,14 @@ function MyApp({ Component, pageProps }) {
           if (data.user) {
             // Ensure is_admin is always a boolean - check various formats
             let isAdmin = false;
-            if (data.user.is_admin === true ||
-                data.user.is_admin === 'true' ||
-                data.user.is_admin === 1 ||
-                data.user.is_admin === '1') {
+            const adminValue = data.user.is_admin;
+
+            if (adminValue === true ||
+                adminValue === 'true' ||
+                adminValue === 1 ||
+                adminValue === '1' ||
+                adminValue === 't' ||
+                (typeof adminValue === 'string' && adminValue.toLowerCase() === 'true')) {
               isAdmin = true;
             }
 
@@ -38,7 +42,12 @@ function MyApp({ Component, pageProps }) {
               ...data.user,
               is_admin: isAdmin
             };
-            console.log('App - Setting user with is_admin:', isAdmin, userData);
+            console.log('App - Setting user:', {
+              'data.user.is_admin': adminValue,
+              'typeof': typeof adminValue,
+              'isAdmin result': isAdmin,
+              'userData': userData
+            });
             setUser(userData);
           }
         })
