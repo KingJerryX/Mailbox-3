@@ -46,6 +46,15 @@ export default async function handler(req, res) {
       const senderId = recipient_id ? user.id : null;
 
       try {
+        console.log('Creating timer with data:', {
+          targetUserId,
+          timer_name: timer_name || 'Time Until We Meet',
+          target_date,
+          target_time: target_time || null,
+          timezone,
+          sender_id: senderId
+        });
+
         const timer = await mailbox.saveCountdownTimer(targetUserId, {
           timer_name: timer_name || 'Time Until We Meet',
           target_date,
@@ -55,19 +64,35 @@ export default async function handler(req, res) {
           sender_id: senderId
         });
 
+        console.log('Timer created successfully:', timer);
         return res.status(200).json({ timer });
       } catch (dbError) {
-        console.error('Database error creating timer:', dbError);
+        console.error('Database error creating timer:', {
+          message: dbError.message,
+          stack: dbError.stack,
+          name: dbError.name,
+          code: dbError.code
+        });
         return res.status(500).json({
           error: 'Failed to create timer',
-          details: dbError.message
+          message: dbError.message || 'Unknown database error',
+          code: dbError.code || 'UNKNOWN_ERROR',
+          details: process.env.NODE_ENV === 'development' ? dbError.stack : undefined
         });
       }
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error('Countdown timers API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Countdown timers API error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message || 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }

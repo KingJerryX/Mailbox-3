@@ -137,23 +137,28 @@ export default function Countdown({ user, setUser }) {
 
     try {
       const token = getToken();
+      const requestBody = {
+        timer_name: timerForm.timer_name || 'Time Until We Meet',
+        target_date: timerForm.target_date,
+        target_time: timerForm.target_time || null,
+        timezone: timerForm.timezone,
+        recipient_id: timerForm.recipient_id || null
+      };
+
+      console.log('Sending timer creation request:', requestBody);
+
       const res = await fetch('/api/countdown/timers', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          timer_name: timerForm.timer_name || 'Time Until We Meet',
-          target_date: timerForm.target_date,
-          target_time: timerForm.target_time || null,
-          timezone: timerForm.timezone,
-          recipient_id: timerForm.recipient_id || null
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (res.ok) {
         const data = await res.json();
+        console.log('Timer created successfully:', data);
         showNotification('✨ Timer created!', 'success');
         setShowForm(false);
         setTimerForm({
@@ -166,8 +171,22 @@ export default function Countdown({ user, setUser }) {
         fetchTimers();
       } else {
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Timer creation error:', errorData);
-        showNotification(`Failed to create timer: ${errorData.error || 'Unknown error'}`, 'error');
+        console.error('Timer creation failed:', {
+          status: res.status,
+          statusText: res.statusText,
+          errorData: errorData,
+          requestBody: {
+            timer_name: timerForm.timer_name || 'Time Until We Meet',
+            target_date: timerForm.target_date,
+            target_time: timerForm.target_time || null,
+            timezone: timerForm.timezone,
+            recipient_id: timerForm.recipient_id || null
+          }
+        });
+
+        const errorMessage = errorData.message || errorData.error || 'Unknown error';
+        const errorCode = errorData.code ? ` (${errorData.code})` : '';
+        showNotification(`Failed to create timer: ${errorMessage}${errorCode}`, 'error');
       }
     } catch (err) {
       console.error('Error saving timer:', err);
