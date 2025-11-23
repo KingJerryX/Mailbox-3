@@ -587,7 +587,15 @@ export default function Mailbox({ user }) {
               <div className={styles.chatWrapper}>
                 <div className={styles.chatContainer}>
                   <div className={styles.chatHeader}>
-                    <h3>💬 {selectedThread.other_username}</h3>
+                    <div className={styles.chatHeaderLeft}>
+                      <h3>💬 {selectedThread.other_username}</h3>
+                      {countdownTimer && countdownDisplay && (
+                        <div className={styles.headerCountdown}>
+                          <span className={styles.headerCountdownName}>{countdownTimer.timer_name}:</span>
+                          <span className={styles.headerCountdownTime}>{countdownDisplay}</span>
+                        </div>
+                      )}
+                    </div>
                     <div className={styles.chatHeaderButtons}>
                       <button
                         className={styles.timerToggle}
