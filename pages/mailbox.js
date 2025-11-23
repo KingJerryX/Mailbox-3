@@ -16,6 +16,13 @@ export default function Mailbox({ user }) {
   const [sending, setSending] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loveNotes, setLoveNotes] = useState([]);
+  const [showLoveNoteModal, setShowLoveNoteModal] = useState(false);
+  const [loveNoteForm, setLoveNoteForm] = useState({
+    receiverId: '',
+    content: '',
+    bgColor: '#FFF7D1'
+  });
   const router = useRouter();
   const notificationTimeoutRef = useRef(null);
   const checkIntervalRef = useRef(null);
@@ -29,6 +36,7 @@ export default function Mailbox({ user }) {
     }
     fetchThreads();
     loadMailboxDesign();
+    loadUnseenLoveNotes();
     startMessageChecking();
     return () => {
       if (checkIntervalRef.current) {
@@ -347,6 +355,14 @@ export default function Mailbox({ user }) {
 
         {/* Action Buttons */}
         <div className={styles.actions}>
+          {!selectedThread && (
+            <button
+              className={styles.btnPrimary}
+              onClick={() => setShowLoveNoteModal(true)}
+            >
+              Leave a Love Note ❤️
+            </button>
+          )}
           {selectedThread && (
             <button
               className={styles.btnSecondary}
@@ -359,6 +375,109 @@ export default function Mailbox({ user }) {
             </button>
           )}
         </div>
+
+        {/* Love Notes Display */}
+        {loveNotes.length > 0 && (
+          <div className={styles.loveNotesContainer}>
+            {loveNotes.map((note, index) => {
+              const tilt = (Math.random() * 4 - 2).toFixed(1);
+              return (
+                <div
+                  key={note.id}
+                  className={styles.loveNote}
+                  style={{
+                    backgroundColor: note.bg_color,
+                    '--tilt': `${tilt}deg`,
+                    zIndex: 1000 + index
+                  }}
+                >
+                  <div className={styles.noteTape}></div>
+                  <button
+                    className={styles.noteClose}
+                    onClick={() => handleDismissNote(note.id)}
+                  >
+                    ×
+                  </button>
+                  <div className={styles.noteContent}>{note.content}</div>
+                  {note.sender_username && (
+                    <div className={styles.noteSender}>— {note.sender_username}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Love Note Creation Modal */}
+        {showLoveNoteModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowLoveNoteModal(false)}>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <h2>Leave a Love Note ❤️</h2>
+              <form onSubmit={handleCreateLoveNote}>
+                <label>
+                  Send to
+                  <select
+                    value={loveNoteForm.receiverId}
+                    onChange={(e) => setLoveNoteForm({ ...loveNoteForm, receiverId: e.target.value })}
+                    required
+                    className={styles.select}
+                  >
+                    <option value="">Select recipient...</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.username}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Message *
+                  <textarea
+                    value={loveNoteForm.content}
+                    onChange={(e) => setLoveNoteForm({ ...loveNoteForm, content: e.target.value })}
+                    placeholder="Write your love note here..."
+                    required
+                    className={styles.textarea}
+                    rows="4"
+                  />
+                </label>
+                <label>
+                  Background Color
+                  <div className={styles.colorPicker}>
+                    {['#FFF7D1', '#FFE4E1', '#E6E6FA', '#F0E68C', '#FFB6C1', '#DDA0DD', '#98FB98', '#B0E0E6'].map(color => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={styles.colorOption}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setLoveNoteForm({ ...loveNoteForm, bgColor: color })}
+                        title={color}
+                      >
+                        {loveNoteForm.bgColor === color && '✓'}
+                      </button>
+                    ))}
+                    <input
+                      type="color"
+                      value={loveNoteForm.bgColor}
+                      onChange={(e) => setLoveNoteForm({ ...loveNoteForm, bgColor: e.target.value })}
+                      className={styles.colorInput}
+                    />
+                  </div>
+                </label>
+                <div className={styles.modalActions}>
+                  <button type="submit" className={styles.btnSend}>
+                    Send Love Note 💕
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.btnCancel}
+                    onClick={() => setShowLoveNoteModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Thread List View */}
         {!selectedThread && (
