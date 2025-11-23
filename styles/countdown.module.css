@@ -176,7 +176,8 @@
   flex: 1;
 }
 
-.senderBadge {
+.senderBadge,
+.sharedBadge {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
   padding: 4px 10px;
@@ -184,6 +185,10 @@
   font-size: 12px;
   font-weight: bold;
   margin-left: 10px;
+}
+
+.sharedBadge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .deleteBtn {

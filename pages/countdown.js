@@ -274,7 +274,11 @@ export default function Countdown({ user, setUser }) {
       if (res.ok) {
         const data = await res.json();
         console.log('Timer created successfully:', data);
-        showNotification('✨ Timer created!', 'success');
+        if (data.shared) {
+          showNotification('✨ Timer shared with both users!', 'success');
+        } else {
+          showNotification('✨ Timer created!', 'success');
+        }
         setShowForm(false);
         setTimerForm({
           timer_name: '',
@@ -444,8 +448,10 @@ export default function Countdown({ user, setUser }) {
                 >
                   <div className={styles.timerCardHeader}>
                     <h3>{timer.timer_name}</h3>
-                    {timer.sender_username && (
-                      <span className={styles.senderBadge}>From: {timer.sender_username}</span>
+                    {timer.is_shared && (
+                      <span className={styles.sharedBadge}>
+                        {timer.is_received ? `Shared by ${timer.sender_username}` : `Shared with ${timer.shared_with_username || 'you'}`}
+                      </span>
                     )}
                     <button
                       className={styles.deleteBtn}
@@ -472,8 +478,12 @@ export default function Countdown({ user, setUser }) {
           <div className={styles.countdownDisplay}>
             <div className={styles.countdownTitle}>{selectedTimer.timer_name}</div>
             <div className={styles.countdownTime}>{countdownDisplay || 'Calculating...'}</div>
-            {selectedTimer.sender_username && (
-              <div className={styles.countdownSender}>Shared by {selectedTimer.sender_username}</div>
+            {selectedTimer.is_shared && (
+              <div className={styles.countdownSender}>
+                {selectedTimer.is_received
+                  ? `Shared by ${selectedTimer.sender_username}`
+                  : `Shared with ${selectedTimer.shared_with_username || 'you'}`}
+              </div>
             )}
           </div>
         )}

@@ -40,32 +40,59 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD' });
       }
 
-      // If recipient_id is provided, create timer for that user
-      // Otherwise, create for current user
-      const targetUserId = recipient_id ? parseInt(recipient_id) : user.id;
-      const senderId = recipient_id ? user.id : null;
-
       try {
         console.log('Creating timer with data:', {
-          targetUserId,
+          recipient_id,
           timer_name: timer_name || 'Time Until We Meet',
           target_date,
           target_time: target_time || null,
-          timezone,
-          sender_id: senderId
+          timezone
         });
 
-        const timer = await mailbox.saveCountdownTimer(targetUserId, {
-          timer_name: timer_name || 'Time Until We Meet',
-          target_date,
-          target_time: target_time || null,
-          timezone,
-          enabled: true,
-          sender_id: senderId
-        });
+        if (recipient_id) {
+          // Shared timer: create for both users
+          const recipientId = parseInt(recipient_id);
 
-        console.log('Timer created successfully:', timer);
-        return res.status(200).json({ timer });
+          // Create timer for recipient
+          const recipientTimer = await mailbox.saveCountdownTimer(recipientId, {
+            timer_name: timer_name || 'Time Until We Meet',
+            target_date,
+            target_time: target_time || null,
+            timezone,
+            enabled: true,
+            sender_id: user.id
+          });
+
+          // Create same timer for sender (so both see it)
+          const senderTimer = await mailbox.saveCountdownTimer(user.id, {
+            timer_name: timer_name || 'Time Until We Meet',
+            target_date,
+            target_time: target_time || null,
+            timezone,
+            enabled: true,
+            sender_id: recipientId
+          });
+
+          console.log('Shared timer created for both users:', { recipientTimer, senderTimer });
+          return res.status(200).json({
+            timer: recipientTimer,
+            shared: true,
+            message: 'Timer shared with both users'
+          });
+        } else {
+          // Personal timer: create only for current user
+          const timer = await mailbox.saveCountdownTimer(user.id, {
+            timer_name: timer_name || 'Time Until We Meet',
+            target_date,
+            target_time: target_time || null,
+            timezone,
+            enabled: true,
+            sender_id: null
+          });
+
+          console.log('Personal timer created:', timer);
+          return res.status(200).json({ timer });
+        }
       } catch (dbError) {
         console.error('Database error creating timer:', {
           message: dbError.message,
