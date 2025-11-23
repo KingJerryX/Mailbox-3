@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import styles from '../../styles/admin.module.css';
 
 export default function AdminCheck({ user, setUser }) {
   const [checkResult, setCheckResult] = useState(null);
@@ -91,22 +90,48 @@ export default function AdminCheck({ user, setUser }) {
         <title>Admin Status Check 🔍 - FerryMail</title>
       </Head>
 
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>🔍 Admin Status Check</h1>
-          <p className={styles.subtitle}>Debug your admin status</p>
+      <div style={{
+        minHeight: '100vh',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        <div style={{ marginBottom: '30px' }}>
+          <h1 style={{ fontSize: '36px', color: '#667eea', margin: '0 0 8px 0' }}>🔍 Admin Status Check</h1>
+          <p style={{ fontSize: '18px', color: '#6b7280', margin: 0 }}>Debug your admin status</p>
         </div>
 
-        <div className={styles.actions}>
-          <button onClick={checkAdminStatus} className={styles.refreshBtn} disabled={loading}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '20px' }}>
+          <button
+            onClick={checkAdminStatus}
+            disabled={loading}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1
+            }}
+          >
             🔄 Refresh Check
           </button>
         </div>
 
-        {loading && <div className={styles.loading}>Loading...</div>}
+        {loading && <div style={{ textAlign: 'center', padding: '40px', fontSize: '18px', color: '#667eea' }}>Loading...</div>}
 
         {checkResult && (
-          <div className={styles.tableContainer}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+            padding: '20px',
+            marginBottom: '20px'
+          }}>
             <h2>Current Status</h2>
             <pre style={{
               background: '#f5f5f5',
@@ -119,7 +144,13 @@ export default function AdminCheck({ user, setUser }) {
           </div>
         )}
 
-        <div className={styles.tableContainer}>
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+          padding: '20px',
+          marginBottom: '20px'
+        }}>
           <h2>Make User Admin</h2>
           <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
             <input
@@ -136,8 +167,18 @@ export default function AdminCheck({ user, setUser }) {
             />
             <button
               onClick={makeAdmin}
-              className={styles.refreshBtn}
               disabled={loading || !username}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: (loading || !username) ? 'not-allowed' : 'pointer',
+                opacity: (loading || !username) ? 0.6 : 1
+              }}
             >
               Make Admin
             </button>
