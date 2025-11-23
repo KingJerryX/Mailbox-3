@@ -6,16 +6,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Try to get user, but don't require auth for debugging
+  let user = null;
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    user = verifyToken(token);
   }
 
-  const token = authHeader.split(' ')[1];
-  const user = verifyToken(token);
-  if (!user) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
+  // If no user, use a test user ID (1) for testing
+  const testUserId = user ? user.id : 1;
 
   try {
     await ensureDatabaseInitialized();
@@ -37,30 +37,40 @@ export default async function handler(req, res) {
       ORDER BY ordinal_position
     `;
 
-    // Test a simple insert (then delete it)
-    const testDate = new Date().toISOString().split('T')[0];
-    const testResult = await sql`
-      INSERT INTO countdown_timers (user_id, timer_name, target_date, timezone, enabled)
-      VALUES (${user.id}, 'Test Timer', ${testDate}, 'UTC', false)
-      RETURNING id
-    `;
+    // Test a simple insert (then delete it) - only if user exists
+    let testInsert = 'Skipped (no auth)';
+    if (user) {
+      try {
+        const testDate = new Date().toISOString().split('T')[0];
+        const testResult = await sql`
+          INSERT INTO countdown_timers (user_id, timer_name, target_date, timezone, enabled)
+          VALUES (${user.id}, 'Test Timer', ${testDate}, 'UTC', false)
+          RETURNING id
+        `;
 
-    const testId = testResult.rows[0].id;
+        const testId = testResult.rows[0].id;
 
-    // Clean up test record
-    await sql`
-      DELETE FROM countdown_timers WHERE id = ${testId}
-    `;
+        // Clean up test record
+        await sql`
+          DELETE FROM countdown_timers WHERE id = ${testId}
+        `;
+
+        testInsert = 'Success';
+      } catch (insertError) {
+        testInsert = `Failed: ${insertError.message}`;
+      }
+    }
 
     return res.status(200).json({
       success: true,
       tableExists: tableCheck.rows[0].exists,
       columns: columns.rows,
-      testInsert: 'Success',
-      user: {
+      testInsert: testInsert,
+      user: user ? {
         id: user.id,
         username: user.username
-      }
+      } : 'Not authenticated (this is OK for debugging)',
+      note: 'Visit this page while logged in to test insert functionality'
     });
   } catch (error) {
     console.error('Debug test error:', error);
