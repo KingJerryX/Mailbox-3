@@ -16,6 +16,7 @@ export default function Mailbox({ user }) {
   const [replyingContent, setReplyingContent] = useState('');
   const [sending, setSending] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
   const notificationTimeoutRef = useRef(null);
   const checkIntervalRef = useRef(null);
@@ -339,15 +340,28 @@ export default function Mailbox({ user }) {
       <div className={styles.container}>
         {/* Bobbing Hearts Background */}
         <div className={styles.heartsBackground}>
-          {[...Array(30)].map((_, i) => (
-            <span key={i} className={styles.heart} style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 2}s`
-            }}>
-              {['💕', '💖', '💗', '💓', '💝', '❤️', '💛', '💚'][Math.floor(Math.random() * 8)]}
-            </span>
-          ))}
+          {[...Array(30)].map((_, i) => {
+            // Create a grid pattern for hearts
+            const row = Math.floor(i / 6);
+            const col = i % 6;
+            const left = 10 + (col * 15) + (Math.random() * 5);
+            const top = 10 + (row * 15) + (Math.random() * 5);
+
+            return (
+              <span
+                key={i}
+                className={styles.heart}
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${2 + Math.random() * 1.5}s`
+                }}
+              >
+                {['💕', '💖', '💗', '💓', '💝', '❤️', '💛', '💚'][Math.floor(Math.random() * 8)]}
+              </span>
+            );
+          })}
         </div>
 
         {/* Notification */}
@@ -504,6 +518,13 @@ export default function Mailbox({ user }) {
                 <div className={styles.chatContainer}>
                   <div className={styles.chatHeader}>
                     <h3>💬 {selectedThread.other_username}</h3>
+                    <button
+                      className={styles.sidebarToggle}
+                      onClick={() => setSidebarOpen(!sidebarOpen)}
+                      title={sidebarOpen ? 'Close quick messages' : 'Open quick messages'}
+                    >
+                      {sidebarOpen ? '✕' : '💌'}
+                    </button>
                   </div>
                 <div
                   className={styles.chatMessages}
@@ -593,53 +614,55 @@ export default function Mailbox({ user }) {
                 </div>
 
                 {/* Preset Messages Sidebar */}
-                <div className={styles.presetSidebar}>
-                  <h4 className={styles.presetTitle}>Quick Messages 💌</h4>
-                  <div className={styles.presetButtons}>
-                    <button
-                      className={styles.presetBtn}
-                      onClick={() => handlePresetMessage('I LOVE YOU', '💕')}
-                      disabled={sending}
-                    >
-                      I LOVE YOU 💕
-                    </button>
-                    <button
-                      className={styles.presetBtn}
-                      onClick={() => handlePresetMessage('I MISS YOU', '💔')}
-                      disabled={sending}
-                    >
-                      I MISS YOU 💔
-                    </button>
-                    <button
-                      className={styles.presetBtn}
-                      onClick={() => handlePresetMessage("I'M HUNGRY", '🍕')}
-                      disabled={sending}
-                    >
-                      I'M HUNGRY 🍕
-                    </button>
-                    <button
-                      className={styles.presetBtn}
-                      onClick={() => handlePresetMessage('GOOD MORNING', '☀️')}
-                      disabled={sending}
-                    >
-                      GOOD MORNING ☀️
-                    </button>
-                    <button
-                      className={styles.presetBtn}
-                      onClick={() => handlePresetMessage('GOOD NIGHT', '🌙')}
-                      disabled={sending}
-                    >
-                      GOOD NIGHT 🌙
-                    </button>
-                    <button
-                      className={styles.presetBtn}
-                      onClick={() => handlePresetMessage('THINKING OF YOU', '💭')}
-                      disabled={sending}
-                    >
-                      THINKING OF YOU 💭
-                    </button>
+                {sidebarOpen && (
+                  <div className={styles.presetSidebar}>
+                    <h4 className={styles.presetTitle}>Quick Messages 💌</h4>
+                    <div className={styles.presetButtons}>
+                      <button
+                        className={styles.presetBtn}
+                        onClick={() => handlePresetMessage('I LOVE YOU', '💕')}
+                        disabled={sending}
+                      >
+                        I LOVE YOU 💕
+                      </button>
+                      <button
+                        className={styles.presetBtn}
+                        onClick={() => handlePresetMessage('I MISS YOU', '💔')}
+                        disabled={sending}
+                      >
+                        I MISS YOU 💔
+                      </button>
+                      <button
+                        className={styles.presetBtn}
+                        onClick={() => handlePresetMessage("I'M HUNGRY", '🍕')}
+                        disabled={sending}
+                      >
+                        I'M HUNGRY 🍕
+                      </button>
+                      <button
+                        className={styles.presetBtn}
+                        onClick={() => handlePresetMessage('GOOD MORNING', '☀️')}
+                        disabled={sending}
+                      >
+                        GOOD MORNING ☀️
+                      </button>
+                      <button
+                        className={styles.presetBtn}
+                        onClick={() => handlePresetMessage('GOOD NIGHT', '🌙')}
+                        disabled={sending}
+                      >
+                        GOOD NIGHT 🌙
+                      </button>
+                      <button
+                        className={styles.presetBtn}
+                        onClick={() => handlePresetMessage('THINKING OF YOU', '💭')}
+                        disabled={sending}
+                      >
+                        THINKING OF YOU 💭
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
