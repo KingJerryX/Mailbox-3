@@ -22,18 +22,25 @@ export default async function handler(req, res) {
   let isAdmin = false;
   try {
     const dbUser = await mailbox.getUserById(user.id);
-    isAdmin = dbUser ? (dbUser.is_admin === true) : (user.is_admin === true);
+    console.log('Verify - dbUser:', dbUser);
+    console.log('Verify - dbUser.is_admin:', dbUser?.is_admin, typeof dbUser?.is_admin);
+    isAdmin = dbUser ? (dbUser.is_admin === true || dbUser.is_admin === 'true' || dbUser.is_admin === 1) : (user.is_admin === true);
+    console.log('Verify - isAdmin result:', isAdmin);
   } catch (err) {
     console.error('Error fetching user for verify:', err);
     // Fallback to JWT token value
     isAdmin = user.is_admin === true;
   }
 
+  const userResponse = {
+    id: user.id,
+    username: user.username,
+    is_admin: isAdmin,
+  };
+
+  console.log('Verify - returning user:', userResponse);
+
   res.status(200).json({
-    user: {
-      id: user.id,
-      username: user.username,
-      is_admin: isAdmin,
-    },
+    user: userResponse,
   });
 }
