@@ -41,6 +41,9 @@ export default function Layout({ children, user, logout }) {
                     🔍 Admin
                   </Link>
                 )}
+                <Link href="/debug/admin-check" className={styles.link} style={{ fontSize: '12px', opacity: 0.7 }}>
+                  🔧
+                </Link>
                 <span className={styles.userInfo}>
                   👤 {user.username}
                 </span>
