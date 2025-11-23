@@ -234,6 +234,12 @@ export default function Mailbox({ user }) {
     e.preventDefault();
     if (!replyingContent.trim() || !selectedThread) return;
 
+    await sendMessage(replyingContent.trim());
+  };
+
+  const sendMessage = async (content) => {
+    if (!content.trim() || !selectedThread) return;
+
     setSending(true);
     try {
       const token = getToken();
@@ -245,7 +251,7 @@ export default function Mailbox({ user }) {
         },
         body: JSON.stringify({
           recipient_id: selectedThread.other_user_id,
-          content: replyingContent.trim()
+          content: content.trim()
         })
       });
 
@@ -263,6 +269,11 @@ export default function Mailbox({ user }) {
     } finally {
       setSending(false);
     }
+  };
+
+  const handlePresetMessage = (message, emoji) => {
+    const fullMessage = `${message} ${emoji}`;
+    sendMessage(fullMessage);
   };
 
   const handleStartNewThread = async (e) => {
@@ -328,13 +339,13 @@ export default function Mailbox({ user }) {
       <div className={styles.container}>
         {/* Bobbing Hearts Background */}
         <div className={styles.heartsBackground}>
-          {[...Array(15)].map((_, i) => (
+          {[...Array(30)].map((_, i) => (
             <span key={i} className={styles.heart} style={{
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
               animationDuration: `${3 + Math.random() * 2}s`
             }}>
-              💕
+              {['💕', '💖', '💗', '💓', '💝', '❤️', '💛', '💚'][Math.floor(Math.random() * 8)]}
             </span>
           ))}
         </div>
@@ -489,10 +500,11 @@ export default function Mailbox({ user }) {
                 backgroundPosition: 'center'
               }}
             >
-              <div className={styles.chatContainer}>
-                <div className={styles.chatHeader}>
-                  <h3>💬 {selectedThread.other_username}</h3>
-                </div>
+              <div className={styles.chatWrapper}>
+                <div className={styles.chatContainer}>
+                  <div className={styles.chatHeader}>
+                    <h3>💬 {selectedThread.other_username}</h3>
+                  </div>
                 <div
                   className={styles.chatMessages}
                   ref={chatMessagesRef}
@@ -554,30 +566,80 @@ export default function Mailbox({ user }) {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} className={styles.chatInput}>
-                  <textarea
-                    value={replyingContent}
-                    onChange={(e) => setReplyingContent(e.target.value)}
-                    placeholder="Type your message..."
-                    className={styles.chatTextarea}
-                    rows="2"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (replyingContent.trim() && !sending) {
-                          handleSendMessage(e);
+                  <form onSubmit={handleSendMessage} className={styles.chatInput}>
+                    <textarea
+                      value={replyingContent}
+                      onChange={(e) => setReplyingContent(e.target.value)}
+                      placeholder="Type your message..."
+                      className={styles.chatTextarea}
+                      rows="2"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (replyingContent.trim() && !sending) {
+                            handleSendMessage(e);
+                          }
                         }
-                      }
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    className={styles.btnSend}
-                    disabled={!replyingContent.trim() || sending}
-                  >
-                    {sending ? 'Sending...' : 'Send 💌'}
-                  </button>
-                </form>
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      className={styles.btnSend}
+                      disabled={!replyingContent.trim() || sending}
+                    >
+                      {sending ? 'Sending...' : 'Send 💌'}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Preset Messages Sidebar */}
+                <div className={styles.presetSidebar}>
+                  <h4 className={styles.presetTitle}>Quick Messages 💌</h4>
+                  <div className={styles.presetButtons}>
+                    <button
+                      className={styles.presetBtn}
+                      onClick={() => handlePresetMessage('I LOVE YOU', '💕')}
+                      disabled={sending}
+                    >
+                      I LOVE YOU 💕
+                    </button>
+                    <button
+                      className={styles.presetBtn}
+                      onClick={() => handlePresetMessage('I MISS YOU', '💔')}
+                      disabled={sending}
+                    >
+                      I MISS YOU 💔
+                    </button>
+                    <button
+                      className={styles.presetBtn}
+                      onClick={() => handlePresetMessage("I'M HUNGRY", '🍕')}
+                      disabled={sending}
+                    >
+                      I'M HUNGRY 🍕
+                    </button>
+                    <button
+                      className={styles.presetBtn}
+                      onClick={() => handlePresetMessage('GOOD MORNING', '☀️')}
+                      disabled={sending}
+                    >
+                      GOOD MORNING ☀️
+                    </button>
+                    <button
+                      className={styles.presetBtn}
+                      onClick={() => handlePresetMessage('GOOD NIGHT', '🌙')}
+                      disabled={sending}
+                    >
+                      GOOD NIGHT 🌙
+                    </button>
+                    <button
+                      className={styles.presetBtn}
+                      onClick={() => handlePresetMessage('THINKING OF YOU', '💭')}
+                      disabled={sending}
+                    >
+                      THINKING OF YOU 💭
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
