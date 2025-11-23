@@ -55,25 +55,29 @@ export default function Countdown({ user, setUser }) {
       if (res.ok) {
         const data = await res.json();
         const fetchedTimers = data.timers || [];
-        setTimers(fetchedTimers);
+
+        // Filter out any timers that might have enabled = false (just in case)
+        const activeTimers = fetchedTimers.filter(t => t.enabled !== false);
+
+        setTimers(activeTimers);
 
         // Update selected timer if it still exists, or select first one
         if (selectedTimer) {
-          const stillExists = fetchedTimers.find(t => t.id === selectedTimer.id);
+          const stillExists = activeTimers.find(t => t.id === selectedTimer.id);
           if (stillExists) {
             // Update selected timer with fresh data
             setSelectedTimer(stillExists);
           } else {
             // Selected timer was deleted, select first available or clear
-            if (fetchedTimers.length > 0) {
-              setSelectedTimer(fetchedTimers[0]);
+            if (activeTimers.length > 0) {
+              setSelectedTimer(activeTimers[0]);
             } else {
               setSelectedTimer(null);
               setCountdownDisplay('');
             }
           }
-        } else if (fetchedTimers.length > 0) {
-          setSelectedTimer(fetchedTimers[0]);
+        } else if (activeTimers.length > 0) {
+          setSelectedTimer(activeTimers[0]);
         } else {
           setSelectedTimer(null);
           setCountdownDisplay('');
@@ -346,20 +350,28 @@ export default function Countdown({ user, setUser }) {
 
       if (res.ok) {
         // Immediately remove timer from local state
-        setTimers(prevTimers => prevTimers.filter(timer => timer.id !== timerId));
+        const updatedTimers = timers.filter(timer => timer.id !== timerId);
+        setTimers(updatedTimers);
 
         // If the deleted timer was selected, clear selection
         if (selectedTimer && selectedTimer.id === timerId) {
           setSelectedTimer(null);
           setCountdownDisplay('');
+          // If there are other timers, select the first one
+          if (updatedTimers.length > 0) {
+            setSelectedTimer(updatedTimers[0]);
+          }
         }
 
         showNotification('Timer deleted', 'success');
 
-        // Refresh from server to ensure consistency
-        await fetchTimers();
+        // Refresh from server to ensure consistency (this will update selectedTimer if needed)
+        setTimeout(async () => {
+          await fetchTimers();
+        }, 100);
       } else {
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Delete failed:', errorData);
         showNotification(`Failed to delete timer: ${errorData.error || 'Unknown error'}`, 'error');
       }
     } catch (err) {
