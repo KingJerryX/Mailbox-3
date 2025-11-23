@@ -54,13 +54,34 @@ export default function Countdown({ user, setUser }) {
       });
       if (res.ok) {
         const data = await res.json();
-        setTimers(data.timers || []);
-        if (data.timers && data.timers.length > 0 && !selectedTimer) {
-          setSelectedTimer(data.timers[0]);
+        const fetchedTimers = data.timers || [];
+        setTimers(fetchedTimers);
+
+        // Update selected timer if it still exists, or select first one
+        if (selectedTimer) {
+          const stillExists = fetchedTimers.find(t => t.id === selectedTimer.id);
+          if (stillExists) {
+            // Update selected timer with fresh data
+            setSelectedTimer(stillExists);
+          } else {
+            // Selected timer was deleted, select first available or clear
+            if (fetchedTimers.length > 0) {
+              setSelectedTimer(fetchedTimers[0]);
+            } else {
+              setSelectedTimer(null);
+              setCountdownDisplay('');
+            }
+          }
+        } else if (fetchedTimers.length > 0) {
+          setSelectedTimer(fetchedTimers[0]);
+        } else {
+          setSelectedTimer(null);
+          setCountdownDisplay('');
         }
       }
     } catch (err) {
       console.error('Error fetching timers:', err);
+      showNotification('Failed to load timers', 'error');
     }
   };
 
@@ -324,18 +345,26 @@ export default function Countdown({ user, setUser }) {
       });
 
       if (res.ok) {
-        showNotification('Timer deleted', 'success');
-        fetchTimers();
+        // Immediately remove timer from local state
+        setTimers(prevTimers => prevTimers.filter(timer => timer.id !== timerId));
+
+        // If the deleted timer was selected, clear selection
         if (selectedTimer && selectedTimer.id === timerId) {
           setSelectedTimer(null);
           setCountdownDisplay('');
         }
+
+        showNotification('Timer deleted', 'success');
+
+        // Refresh from server to ensure consistency
+        await fetchTimers();
       } else {
-        showNotification('Failed to delete timer', 'error');
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        showNotification(`Failed to delete timer: ${errorData.error || 'Unknown error'}`, 'error');
       }
     } catch (err) {
       console.error('Error deleting timer:', err);
-      showNotification('Error deleting timer', 'error');
+      showNotification(`Error deleting timer: ${err.message}`, 'error');
     }
   };
 
