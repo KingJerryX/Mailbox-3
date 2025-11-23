@@ -1,5 +1,5 @@
 import { verifyToken } from '../../../lib/auth.js';
-import { sql, ensureDatabaseInitialized } from '../../../lib/db.js';
+import { sql, initializeDatabase } from '../../../lib/db.js';
 import * as mailbox from '../../../lib/mailbox.js';
 
 export default async function handler(req, res) {
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await ensureDatabaseInitialized();
+    await initializeDatabase();
 
     // Get user from database
     const dbUser = await mailbox.getUserById(user.id);

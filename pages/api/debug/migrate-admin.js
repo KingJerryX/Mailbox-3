@@ -1,4 +1,4 @@
-import { sql, ensureDatabaseInitialized } from '../../../lib/db.js';
+import { sql, initializeDatabase } from '../../../lib/db.js';
 
 export default async function handler(req, res) {
   // Allow in development or with DEBUG_SECRET
@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await ensureDatabaseInitialized();
+    await initializeDatabase();
 
     // Check if is_admin column exists
     const columnCheck = await sql`
