@@ -17,6 +17,9 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/countdown" style={styles.link}>
                   Countdown
                 </Link>
+                <Link href="/bucket-list" style={styles.link}>
+                  Bucket List
+                </Link>
                 <Link href="/settings" style={styles.link}>
                   Settings
                 </Link>
