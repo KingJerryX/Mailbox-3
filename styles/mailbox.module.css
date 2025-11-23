@@ -978,22 +978,69 @@
     min-width: auto;
   }
 
-  .chatContainer {
-    height: 500px;
+  .container {
+    padding: 10px;
   }
 
-  .chatBubble {
-    max-width: 85%;
+  .mailboxContainer {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mailbox {
+    padding: 15px;
+    min-height: auto;
   }
 
   .chatWrapper {
     flex-direction: column;
+    gap: 10px;
+  }
+
+  .chatContainer {
+    height: calc(100vh - 200px);
+    min-height: 500px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .chatHeader {
+    padding: 15px;
+  }
+
+  .chatHeader h3 {
+    font-size: 18px;
+  }
+
+  .chatMessages {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  .chatBubble {
+    max-width: 85%;
+    padding: 14px 18px;
+  }
+
+  .chatContent {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .chatInput {
+    padding: 12px;
+  }
+
+  .chatTextarea {
+    font-size: 16px;
+    padding: 12px;
   }
 
   .presetSidebar {
     width: 100%;
     position: relative;
     margin-top: 15px;
+    max-height: none;
   }
 
   .presetButtons {
@@ -1004,5 +1051,49 @@
   .presetBtn {
     flex: 1;
     min-width: 120px;
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+}
+
+/* Extra small devices (phones) */
+@media (max-width: 480px) {
+  .chatContainer {
+    height: calc(100vh - 150px);
+    min-height: 450px;
+  }
+
+  .chatHeader {
+    padding: 12px;
+  }
+
+  .chatHeader h3 {
+    font-size: 16px;
+  }
+
+  .chatMessages {
+    padding: 12px;
+  }
+
+  .chatBubble {
+    max-width: 90%;
+    padding: 12px 16px;
+  }
+
+  .chatContent {
+    font-size: 17px;
+  }
+
+  .chatTime {
+    font-size: 12px;
+  }
+
+  .chatInput {
+    padding: 10px;
+  }
+
+  .chatTextarea {
+    font-size: 17px;
+    padding: 10px;
   }
 }
