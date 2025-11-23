@@ -24,7 +24,8 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const messages = await mailbox.getReceivedMessages(user.id);
-      const users = await mailbox.getAllUsers();
+      // Pass requesting user ID to filter admin users for non-admins
+      const users = await mailbox.getAllUsers(null, user.id);
       const messagesWithSenders = messages.map(msg => {
         const sender = users.find(u => u.id === msg.sender_id);
         return {

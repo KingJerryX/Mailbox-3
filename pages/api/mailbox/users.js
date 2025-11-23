@@ -23,7 +23,8 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const users = await mailbox.getAllUsers(user.id);
+      // Pass the requesting user ID so we can check if they're admin
+      const users = await mailbox.getAllUsers(user.id, user.id);
       return res.status(200).json({ users });
     }
 
