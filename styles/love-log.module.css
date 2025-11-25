@@ -147,7 +147,14 @@
   margin-top: 15px;
 }
 
+.friendItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .friendButton {
+  flex: 1;
   padding: 15px 20px;
   border: 2px solid #e5e7eb;
   border-radius: 10px;
@@ -166,6 +173,26 @@
   border-color: #667eea;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btnRemoveFriend {
+  padding: 8px 12px;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  color: #ef4444;
+  min-width: 40px;
+}
+
+.btnRemoveFriend:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .btnPrimary,
@@ -355,11 +382,74 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   animation: slideUp 0.3s ease-out;
   transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
 }
 
 .post:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.postHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.postActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnEdit,
+.btnDelete {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.btnEdit:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btnDelete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.btnDelete:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btnCancel {
+  padding: 12px 25px;
+  border: 2px solid #6b7280;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: white;
+  color: #6b7280;
+}
+
+.btnCancel:hover {
+  background: #6b7280;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
 }
 
 @keyframes slideUp {

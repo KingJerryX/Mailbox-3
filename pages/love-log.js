@@ -10,6 +10,8 @@ export default function LoveLog({ user }) {
   const [loading, setLoading] = useState(true);
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editPost, setEditPost] = useState({ title: '', content: '' });
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [showFriendRequest, setShowFriendRequest] = useState(false);
@@ -213,6 +215,114 @@ export default function LoveLog({ user }) {
     setView('home');
     setSelectedFriendId(null);
     setPosts([]);
+    setEditingPostId(null);
+    setEditPost({ title: '', content: '' });
+  };
+
+  const handleEditPost = (post) => {
+    setEditingPostId(post.id);
+    setEditPost({ title: post.title, content: post.content });
+    setShowNewPost(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPostId(null);
+    setEditPost({ title: '', content: '' });
+  };
+
+  const handleUpdatePost = async (e) => {
+    e.preventDefault();
+    if (!editPost.title.trim() || !editPost.content.trim()) {
+      showNotification('Please fill in both title and content!', 'error');
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const res = await fetch('/api/love-log/posts', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          postId: editingPostId,
+          title: editPost.title.trim(),
+          content: editPost.content.trim()
+        })
+      });
+
+      if (res.ok) {
+        showNotification('✨ Post updated!', 'success');
+        setEditingPostId(null);
+        setEditPost({ title: '', content: '' });
+        fetchPosts(user.id);
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to update post', 'error');
+      }
+    } catch (err) {
+      console.error('Error updating post:', err);
+      showNotification('Error updating post', 'error');
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const res = await fetch('/api/love-log/posts', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ postId })
+      });
+
+      if (res.ok) {
+        showNotification('🗑️ Post deleted!', 'success');
+        fetchPosts(user.id);
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to delete post', 'error');
+      }
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      showNotification('Error deleting post', 'error');
+    }
+  };
+
+  const handleRemoveFriend = async (friendId, friendUsername) => {
+    if (!confirm(`Are you sure you want to remove ${friendUsername} as a friend?`)) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const res = await fetch('/api/love-log/friends', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ friendId })
+      });
+
+      if (res.ok) {
+        showNotification(`👋 Removed ${friendUsername} as a friend`, 'success');
+        fetchFriends();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to remove friend', 'error');
+      }
+    } catch (err) {
+      console.error('Error removing friend:', err);
+      showNotification('Error removing friend', 'error');
+    }
   };
 
   if (!user) {
@@ -267,13 +377,21 @@ export default function LoveLog({ user }) {
               <h3>👥 Friends</h3>
               <div className={styles.friendsList}>
                 {friends.map((friend) => (
-                  <button
-                    key={friend.id}
-                    className={styles.friendButton}
-                    onClick={() => handleViewFriendPosts(friend.id)}
-                  >
-                    👤 {friend.username}
-                  </button>
+                  <div key={friend.id} className={styles.friendItem}>
+                    <button
+                      className={styles.friendButton}
+                      onClick={() => handleViewFriendPosts(friend.id)}
+                    >
+                      👤 {friend.username}
+                    </button>
+                    <button
+                      className={styles.btnRemoveFriend}
+                      onClick={() => handleRemoveFriend(friend.id, friend.username)}
+                      title="Remove friend"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -400,7 +518,7 @@ export default function LoveLog({ user }) {
         )}
 
         {/* New Post Form (only for own posts) */}
-        {isOwnPosts && showNewPost && (
+        {isOwnPosts && showNewPost && !editingPostId && (
           <div className={styles.panel}>
             <h3>📝 Create New Post</h3>
             <form onSubmit={handlePublish}>
@@ -427,6 +545,43 @@ export default function LoveLog({ user }) {
           </div>
         )}
 
+        {/* Edit Post Form (only for own posts) */}
+        {isOwnPosts && editingPostId && (
+          <div className={styles.panel}>
+            <h3>✏️ Edit Post</h3>
+            <form onSubmit={handleUpdatePost}>
+              <input
+                type="text"
+                placeholder="Post title..."
+                value={editPost.title}
+                onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
+                className={styles.input}
+                required
+              />
+              <textarea
+                placeholder="Write your post here..."
+                value={editPost.content}
+                onChange={(e) => setEditPost({ ...editPost, content: e.target.value })}
+                className={styles.textarea}
+                rows="8"
+                required
+              />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" className={styles.btnPublish}>
+                  💾 Save Changes
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnCancel}
+                  onClick={handleCancelEdit}
+                >
+                  ✕ Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Posts Feed */}
         {loading ? (
           <div className={styles.loading}>
@@ -442,21 +597,43 @@ export default function LoveLog({ user }) {
             ) : (
               posts.map((post) => (
                 <div key={post.id} className={styles.post}>
-                  <div className={styles.postDate}>
-                    {new Date(post.created_at).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                  {!isOwnPosts && (
-                    <div className={styles.postAuthor}>
-                      by <strong>{post.author_username}</strong>
+                  <div className={styles.postHeader}>
+                    <div>
+                      <div className={styles.postDate}>
+                        {new Date(post.created_at).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      {!isOwnPosts && (
+                        <div className={styles.postAuthor}>
+                          by <strong>{post.author_username}</strong>
+                        </div>
+                      )}
                     </div>
-                  )}
+                    {isOwnPosts && editingPostId !== post.id && (
+                      <div className={styles.postActions}>
+                        <button
+                          className={styles.btnEdit}
+                          onClick={() => handleEditPost(post)}
+                          title="Edit post"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className={styles.btnDelete}
+                          onClick={() => handleDeletePost(post.id)}
+                          title="Delete post"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <h2 className={styles.postTitle}>{post.title}</h2>
                   <div className={styles.postContent}>{post.content}</div>
                 </div>

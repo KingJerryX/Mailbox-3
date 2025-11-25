@@ -3,7 +3,7 @@ import * as mailbox from '../../../lib/mailbox.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -53,6 +53,48 @@ export default async function handler(req, res) {
       // Otherwise, get all visible posts (own + friends)
       const posts = await mailbox.getLoveLogPosts(user.id);
       return res.status(200).json({ posts });
+    }
+
+    if (req.method === 'PATCH') {
+      const { postId, title, content } = req.body;
+
+      if (!postId || !title || !content) {
+        return res.status(400).json({ error: 'Post ID, title, and content are required' });
+      }
+
+      try {
+        const post = await mailbox.updateLoveLogPost(postId, user.id, title, content);
+        return res.status(200).json({
+          success: true,
+          post
+        });
+      } catch (error) {
+        if (error.message.includes('Unauthorized') || error.message.includes('not found')) {
+          return res.status(403).json({ error: error.message });
+        }
+        throw error;
+      }
+    }
+
+    if (req.method === 'DELETE') {
+      const { postId } = req.body;
+
+      if (!postId) {
+        return res.status(400).json({ error: 'Post ID is required' });
+      }
+
+      try {
+        await mailbox.deleteLoveLogPost(postId, user.id);
+        return res.status(200).json({
+          success: true,
+          message: 'Post deleted successfully'
+        });
+      } catch (error) {
+        if (error.message.includes('Unauthorized') || error.message.includes('not found')) {
+          return res.status(403).json({ error: error.message });
+        }
+        throw error;
+      }
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
