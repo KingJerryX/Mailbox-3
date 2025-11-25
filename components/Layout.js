@@ -45,6 +45,9 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/games" className={styles.link}>
                   🎮 Games
                 </Link>
+                <Link href="/love-log" className={styles.link}>
+                  💕 Love Log
+                </Link>
                 <Link href="/archive" className={styles.link}>
                   📦 Archive
                 </Link>
