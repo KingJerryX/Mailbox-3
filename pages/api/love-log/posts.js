@@ -38,6 +38,19 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
+      const { userId } = req.query;
+
+      // If userId is provided, get posts for that specific user
+      if (userId) {
+        const targetUserId = parseInt(userId);
+        if (isNaN(targetUserId)) {
+          return res.status(400).json({ error: 'Invalid user ID' });
+        }
+        const posts = await mailbox.getLoveLogPostsByUser(user.id, targetUserId);
+        return res.status(200).json({ posts });
+      }
+
+      // Otherwise, get all visible posts (own + friends)
       const posts = await mailbox.getLoveLogPosts(user.id);
       return res.status(200).json({ posts });
     }

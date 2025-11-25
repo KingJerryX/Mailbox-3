@@ -51,9 +51,6 @@ export default function Layout({ children, user, logout }) {
                 <Link href="/archive" className={styles.link}>
                   📦 Archive
                 </Link>
-                <Link href="/settings" className={styles.link}>
-                  ⚙️ Settings
-                </Link>
                 {isAdmin && (
                   <>
                     <Link href="/admin/users" className={styles.link}>
@@ -67,8 +64,11 @@ export default function Layout({ children, user, logout }) {
                 <span className={styles.userInfo}>
                   👤 {user.username}
                 </span>
+                <Link href="/settings" className={styles.link}>
+                  ⚙️
+                </Link>
                 <button onClick={logout} className={styles.logoutButton}>
-                  🚪 Logout
+                  Logout
                 </button>
               </>
             ) : (
