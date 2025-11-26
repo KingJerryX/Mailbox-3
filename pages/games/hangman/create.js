@@ -146,7 +146,7 @@ export default function CreateHangman({ user, setUser }) {
                 onChange={(e) => setFormData({ ...formData, targetWord: e.target.value })}
                 required
                 className={styles.input}
-                placeholder="Enter a word (must be a valid English word)..."
+                placeholder="Enter word or phrase (letters and spaces only)..."
                 maxLength={50}
               />
             </label>
@@ -188,5 +188,3 @@ export default function CreateHangman({ user, setUser }) {
     </>
   );
 }
-
-

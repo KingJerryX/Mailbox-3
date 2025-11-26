@@ -342,20 +342,21 @@ export default function PlayHangman({ user, setUser }) {
           <div
             className={styles.maskedWord}
             style={{
-              fontSize: game.masked_word.replace(/\s/g, '').length > 8
+              fontSize: (game.masked_word || '').replace(/\s/g, '').length > 8
                 ? 'clamp(24px, 4vw, 48px)'
                 : 'clamp(32px, 5vw, 48px)'
             }}
           >
-            {game.masked_word.split(' ').map((char, idx) => {
-              const letter = char === '_' ? null : char.toLowerCase();
+            {(game.masked_segments || game.masked_word.split(' ')).map((char, idx) => {
+              const isSpace = char === ' ';
+              const letter = !isSpace && char !== '_' ? char.toLowerCase() : null;
               const isFlipping = letter && flipLetters.has(letter);
               return (
                 <span
-                  key={idx}
-                  className={`${styles.wordChar} ${isFlipping ? styles.charFlip : ''}`}
+                  key={`${char}-${idx}`}
+                  className={`${styles.wordChar} ${isSpace ? styles.wordSpace : ''} ${isFlipping ? styles.charFlip : ''}`}
                 >
-                  {char}
+                  {isSpace ? '\u00A0' : char}
                 </span>
               );
             })}
