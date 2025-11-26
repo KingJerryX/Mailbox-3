@@ -5,8 +5,10 @@ import Link from 'next/link';
 import styles from '../../styles/games.module.css';
 
 export default function Games({ user, setUser }) {
-  const [pendingGames, setPendingGames] = useState([]);
-  const [stats, setStats] = useState({ total_games: 0, correct_guesses: 0 });
+  const [pendingTTLGames, setPendingTTLGames] = useState([]);
+  const [pendingHangmanGames, setPendingHangmanGames] = useState([]);
+  const [ttlStats, setTtlStats] = useState({ total_games: 0, correct_guesses: 0 });
+  const [hangmanStats, setHangmanStats] = useState({ games_played: 0, games_won: 0, win_percentage: 0 });
   const router = useRouter();
 
   useEffect(() => {
@@ -14,8 +16,10 @@ export default function Games({ user, setUser }) {
       router.push('/login');
       return;
     }
-    fetchPendingGames();
-    fetchStats();
+    fetchPendingTTLGames();
+    fetchPendingHangmanGames();
+    fetchTTLStats();
+    fetchHangmanStats();
   }, [user]);
 
   const getToken = () => {
@@ -25,7 +29,7 @@ export default function Games({ user, setUser }) {
       ?.split('=')[1];
   };
 
-  const fetchPendingGames = async () => {
+  const fetchPendingTTLGames = async () => {
     try {
       const token = getToken();
       const res = await fetch('/api/ttl/pending', {
@@ -33,14 +37,29 @@ export default function Games({ user, setUser }) {
       });
       if (res.ok) {
         const data = await res.json();
-        setPendingGames(data.games || []);
+        setPendingTTLGames(data.games || []);
       }
     } catch (err) {
-      console.error('Error fetching pending games:', err);
+      console.error('Error fetching pending TTL games:', err);
     }
   };
 
-  const fetchStats = async () => {
+  const fetchPendingHangmanGames = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/hangman/pending', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPendingHangmanGames(data.games || []);
+      }
+    } catch (err) {
+      console.error('Error fetching pending hangman games:', err);
+    }
+  };
+
+  const fetchTTLStats = async () => {
     try {
       const token = getToken();
       const res = await fetch('/api/ttl/stats', {
@@ -48,10 +67,25 @@ export default function Games({ user, setUser }) {
       });
       if (res.ok) {
         const data = await res.json();
-        setStats(data);
+        setTtlStats(data);
       }
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      console.error('Error fetching TTL stats:', err);
+    }
+  };
+
+  const fetchHangmanStats = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/hangman/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setHangmanStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching hangman stats:', err);
     }
   };
 
@@ -59,9 +93,14 @@ export default function Games({ user, setUser }) {
     return null;
   }
 
-  const accuracy = stats.total_games > 0
-    ? Math.round((stats.correct_guesses / stats.total_games) * 100)
+  const ttlAccuracy = ttlStats.total_games > 0
+    ? Math.round((ttlStats.correct_guesses / ttlStats.total_games) * 100)
     : 0;
+
+  const allPendingGames = [
+    ...pendingTTLGames.map(g => ({ ...g, type: 'ttl' })),
+    ...pendingHangmanGames.map(g => ({ ...g, type: 'hangman' }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return (
     <>
@@ -76,19 +115,22 @@ export default function Games({ user, setUser }) {
         </div>
 
         {/* Pending Games - Moved to Top */}
-        {pendingGames.length > 0 && (
+        {allPendingGames.length > 0 && (
           <div className={styles.pendingSection}>
             <h2 className={styles.sectionTitle}>📬 Pending Games</h2>
             <div className={styles.pendingGamesList}>
-              {pendingGames.map(game => (
+              {allPendingGames.map(game => (
                 <Link
-                  key={game.id}
-                  href={`/games/two-truths/play/${game.id}`}
+                  key={`${game.type}-${game.id}`}
+                  href={game.type === 'ttl'
+                    ? `/games/two-truths/play/${game.id}`
+                    : `/games/hangman/play/${game.id}`
+                  }
                   className={styles.pendingGameCard}
                 >
                   <div className={styles.pendingGameHeader}>
                     <span className={styles.pendingGameFrom}>
-                      From: {game.creator_username}
+                      {game.type === 'ttl' ? '🎯' : '🎯'} From: {game.creator_username}
                     </span>
                     <span className={styles.pendingGameDate}>
                       {new Date(game.created_at).toLocaleDateString()}
@@ -111,6 +153,15 @@ export default function Games({ user, setUser }) {
             </p>
             <div className={styles.gameAction}>Create Game →</div>
           </Link>
+
+          <Link href="/games/hangman/create" className={styles.gameCard}>
+            <div className={styles.gameIcon}>🎯</div>
+            <h3 className={styles.gameTitle}>Hangman</h3>
+            <p className={styles.gameDescription}>
+              Create a word puzzle and challenge your partner to guess it letter by letter!
+            </p>
+            <div className={styles.gameAction}>Create Game →</div>
+          </Link>
         </div>
 
         {/* Stats Section - Moved to Bottom and Smaller */}
@@ -118,23 +169,49 @@ export default function Games({ user, setUser }) {
           <h2 className={styles.statsTitle}>Two Truths & a Lie Stats</h2>
           <div className={styles.statsGrid}>
             <div className={styles.statItem}>
-              <div className={styles.statValue}>{stats.correct_guesses}</div>
+              <div className={styles.statValue}>{ttlStats.correct_guesses}</div>
               <div className={styles.statLabel}>Correct Guesses</div>
             </div>
             <div className={styles.statItem}>
-              <div className={styles.statValue}>{stats.total_games}</div>
+              <div className={styles.statValue}>{ttlStats.total_games}</div>
               <div className={styles.statLabel}>Total Games</div>
             </div>
             <div className={styles.statItem}>
-              <div className={styles.statValue}>{accuracy}%</div>
+              <div className={styles.statValue}>{ttlAccuracy}%</div>
               <div className={styles.statLabel}>Accuracy</div>
             </div>
           </div>
-          {stats.total_games > 0 && (
+          {ttlStats.total_games > 0 && (
             <div className={styles.progressBar}>
               <div
                 className={styles.progressFill}
-                style={{ width: `${accuracy}%` }}
+                style={{ width: `${ttlAccuracy}%` }}
+              ></div>
+            </div>
+          )}
+        </div>
+
+        <div className={styles.statsCard}>
+          <h2 className={styles.statsTitle}>Hangman Stats</h2>
+          <div className={styles.statsGrid}>
+            <div className={styles.statItem}>
+              <div className={styles.statValue}>{hangmanStats.games_won}</div>
+              <div className={styles.statLabel}>Games Won</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statValue}>{hangmanStats.games_played}</div>
+              <div className={styles.statLabel}>Games Played</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statValue}>{hangmanStats.win_percentage.toFixed(1)}%</div>
+              <div className={styles.statLabel}>Win Percentage</div>
+            </div>
+          </div>
+          {hangmanStats.games_played > 0 && (
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${hangmanStats.win_percentage}%` }}
               ></div>
             </div>
           )}
