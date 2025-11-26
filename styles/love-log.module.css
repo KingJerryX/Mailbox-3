@@ -82,6 +82,10 @@
 .header {
   text-align: center;
   margin-bottom: 30px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .title {
@@ -121,6 +125,8 @@
 }
 
 .backButton {
+  position: absolute;
+  left: 0;
   padding: 10px 20px;
   border: none;
   border-radius: 10px;
@@ -811,6 +817,108 @@
   font-size: 20px;
 }
 
+/* Initial Screen */
+.initialScreen {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.viewMyLogSection {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.viewMyLogButton {
+  padding: 20px 40px;
+  border: none;
+  border-radius: 15px;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.viewMyLogButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 30px rgba(102, 126, 234, 0.5);
+}
+
+.friendsListSection {
+  padding: 30px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.friendsListSection h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #667eea;
+  font-size: 24px;
+  text-align: center;
+}
+
+.friendsListInitial {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.friendLogButton {
+  padding: 15px 25px;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  color: #667eea;
+  text-align: left;
+}
+
+.friendLogButton:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.noFriendsMessage {
+  text-align: center;
+  color: #6b7280;
+  font-size: 16px;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 10px;
+}
+
+.viewingUserHeader {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.viewingUserHeader h2 {
+  margin: 0;
+  font-size: 32px;
+  color: #667eea;
+  font-weight: 700;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
@@ -928,5 +1036,42 @@
 
   .postDetailHeader h3 {
     font-size: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .backButton {
+    position: static;
+    width: 100%;
+  }
+
+  .viewMyLogButton {
+    padding: 16px 30px;
+    font-size: 20px;
+    width: 100%;
+  }
+
+  .friendsListSection {
+    padding: 20px;
+  }
+
+  .friendsListSection h2 {
+    font-size: 20px;
+  }
+
+  .friendLogButton {
+    font-size: 16px;
+    padding: 12px 20px;
+  }
+
+  .viewingUserHeader {
+    padding: 15px;
+  }
+
+  .viewingUserHeader h2 {
+    font-size: 24px;
   }
 }

@@ -4,6 +4,8 @@ import Head from 'next/head';
 import styles from '../styles/love-log.module.css';
 
 export default function LoveLog({ user }) {
+  const [viewingUserId, setViewingUserId] = useState(null); // null = initial screen, user.id = own log, friend.id = friend's log
+  const [viewingUsername, setViewingUsername] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(11); // November
   const [currentYear, setCurrentYear] = useState(2025);
   const [posts, setPosts] = useState([]);
@@ -30,8 +32,11 @@ export default function LoveLog({ user }) {
     }
     fetchFriendRequests();
     fetchFriends();
-    fetchPosts();
-  }, [user, currentYear, currentMonth]);
+    // Only fetch posts if viewing a log
+    if (viewingUserId) {
+      fetchPosts();
+    }
+  }, [user, viewingUserId, currentYear, currentMonth]);
 
   const getToken = () => {
     return document.cookie
@@ -46,10 +51,12 @@ export default function LoveLog({ user }) {
   };
 
   const fetchPosts = async () => {
+    if (!viewingUserId) return;
     try {
       setLoading(true);
       const token = getToken();
-      const res = await fetch(`/api/love-log/posts?year=${currentYear}&month=${currentMonth}`, {
+      const url = `/api/love-log/posts?userId=${viewingUserId}&year=${currentYear}&month=${currentMonth}`;
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -342,8 +349,32 @@ export default function LoveLog({ user }) {
     return posts.find(post => {
       const postDate = new Date(post.created_at);
       const postDateStr = `${postDate.getFullYear()}-${String(postDate.getMonth() + 1).padStart(2, '0')}-${String(postDate.getDate()).padStart(2, '0')}`;
-      return postDateStr === dateStr && post.user_id === user.id;
+      return postDateStr === dateStr && post.user_id === viewingUserId;
     });
+  };
+
+  const handleViewMyLog = () => {
+    setViewingUserId(user.id);
+    setViewingUsername(user.username);
+    setCurrentMonth(11);
+    setCurrentYear(2025);
+  };
+
+  const handleViewFriendLog = (friendId, friendUsername) => {
+    setViewingUserId(friendId);
+    setViewingUsername(friendUsername);
+    setCurrentMonth(11);
+    setCurrentYear(2025);
+  };
+
+  const handleBackToInitial = () => {
+    setViewingUserId(null);
+    setViewingUsername(null);
+    setPosts([]);
+    setSelectedPost(null);
+    setSelectedDate(null);
+    setShowNewPost(false);
+    setEditingPostId(null);
   };
 
   const handleDayClick = (day) => {
@@ -352,11 +383,13 @@ export default function LoveLog({ user }) {
       setSelectedPost(post);
       setSelectedDate(day);
     } else {
-      // Create new post for this date
-      const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      setNewPost({ ...newPost, postDate: dateStr });
-      setShowNewPost(true);
-      setSelectedDate(day);
+      // Only allow creating posts for own log
+      if (viewingUserId === user.id) {
+        const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        setNewPost({ ...newPost, postDate: dateStr });
+        setShowNewPost(true);
+        setSelectedDate(day);
+      }
     }
   };
 
@@ -427,10 +460,122 @@ export default function LoveLog({ user }) {
 
         <div className={styles.header}>
           <h1 className={styles.title}>💕 Love Log</h1>
+          {viewingUserId && (
+            <button
+              className={styles.backButton}
+              onClick={handleBackToInitial}
+            >
+              ← Back
+            </button>
+          )}
         </div>
 
-        {/* Month Navigation */}
-        <div className={styles.monthNavigation}>
+        {/* Initial Screen - View My Log or Friends */}
+        {!viewingUserId && (
+          <div className={styles.initialScreen}>
+            <div className={styles.viewMyLogSection}>
+              <button
+                className={styles.viewMyLogButton}
+                onClick={handleViewMyLog}
+              >
+                📖 View My Log
+              </button>
+            </div>
+            <div className={styles.friendsListSection}>
+              <h2>View Friends' Logs</h2>
+              {friends.length > 0 ? (
+                <div className={styles.friendsListInitial}>
+                  {friends.map(friend => (
+                    <button
+                      key={friend.id}
+                      className={styles.friendLogButton}
+                      onClick={() => handleViewFriendLog(friend.id, friend.username)}
+                    >
+                      {friend.username}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.noFriendsMessage}>No friends yet. Add a friend to see their log!</p>
+              )}
+            </div>
+            <div className={styles.friendsSection}>
+              <h3>Manage Friends</h3>
+              {friends.length > 0 && (
+                <div className={styles.friendsList}>
+                  {friends.map(friend => (
+                    <div key={friend.id} className={styles.friendItem}>
+                      <span>{friend.username}</span>
+                      <button
+                        className={styles.btnRemoveFriend}
+                        onClick={() => handleRemoveFriend(friend.id, friend.username)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                className={styles.btnPrimary}
+                onClick={() => setShowFriendRequest(!showFriendRequest)}
+              >
+                {showFriendRequest ? 'Cancel' : '+ Add Friend'}
+              </button>
+              {showFriendRequest && (
+                <form onSubmit={handleSendFriendRequest} className={styles.friendRequestForm}>
+                  <input
+                    type="text"
+                    placeholder="Enter username..."
+                    value={friendUsername}
+                    onChange={(e) => setFriendUsername(e.target.value)}
+                    className={styles.input}
+                  />
+                  <button type="submit" className={styles.btnSend}>
+                    Send Request
+                  </button>
+                </form>
+              )}
+            </div>
+            {/* Friend Requests */}
+            {friendRequests.length > 0 && (
+              <div className={styles.friendRequestsSection}>
+                <h3>Pending Friend Requests</h3>
+                {friendRequests.map(request => (
+                  <div key={request.id} className={styles.friendRequest}>
+                    <div className={styles.friendRequestInfo}>
+                      <strong>{request.requester_username}</strong> wants to be your friend
+                    </div>
+                    <div className={styles.friendRequestActions}>
+                      <button
+                        className={styles.btnAccept}
+                        onClick={() => handleAcceptRequest(request.id)}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className={styles.btnReject}
+                        onClick={() => handleRejectRequest(request.id)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Calendar View - Only shown when viewing a log */}
+        {viewingUserId && (
+          <>
+            <div className={styles.viewingUserHeader}>
+              <h2>{viewingUserId === user.id ? 'My Log' : `${viewingUsername}'s Log`}</h2>
+            </div>
+
+            {/* Month Navigation */}
+            <div className={styles.monthNavigation}>
           <button
             className={styles.monthNavButton}
             onClick={() => {
@@ -642,91 +787,25 @@ export default function LoveLog({ user }) {
                 day: 'numeric'
               })}
             </div>
-            <div className={styles.postDetailActions}>
-              <button
-                className={styles.btnEdit}
-                onClick={() => handleEditPost(selectedPost)}
-              >
-                ✏️ Edit
-              </button>
-              <button
-                className={styles.btnDelete}
-                onClick={() => handleDeletePost(selectedPost.id)}
-              >
-                🗑️ Delete
-              </button>
-            </div>
+            {viewingUserId === user.id && (
+              <div className={styles.postDetailActions}>
+                <button
+                  className={styles.btnEdit}
+                  onClick={() => handleEditPost(selectedPost)}
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  className={styles.btnDelete}
+                  onClick={() => handleDeletePost(selectedPost.id)}
+                >
+                  🗑️ Delete
+                </button>
+              </div>
+            )}
           </div>
         )}
-
-        {/* Friends Section */}
-        <div className={styles.friendsSection}>
-          <h3>Friends</h3>
-          {friends.length > 0 ? (
-            <div className={styles.friendsList}>
-              {friends.map(friend => (
-                <div key={friend.id} className={styles.friendItem}>
-                  <span>{friend.username}</span>
-                  <button
-                    className={styles.btnRemoveFriend}
-                    onClick={() => handleRemoveFriend(friend.id, friend.username)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>No friends yet. Add a friend to see their posts!</p>
-          )}
-          <button
-            className={styles.btnPrimary}
-            onClick={() => setShowFriendRequest(!showFriendRequest)}
-          >
-            {showFriendRequest ? 'Cancel' : '+ Add Friend'}
-          </button>
-          {showFriendRequest && (
-            <form onSubmit={handleSendFriendRequest} className={styles.friendRequestForm}>
-              <input
-                type="text"
-                placeholder="Enter username..."
-                value={friendUsername}
-                onChange={(e) => setFriendUsername(e.target.value)}
-                className={styles.input}
-              />
-              <button type="submit" className={styles.btnSend}>
-                Send Request
-              </button>
-            </form>
-          )}
-        </div>
-
-        {/* Friend Requests */}
-        {friendRequests.length > 0 && (
-          <div className={styles.friendRequestsSection}>
-            <h3>Pending Friend Requests</h3>
-            {friendRequests.map(request => (
-              <div key={request.id} className={styles.friendRequest}>
-                <div className={styles.friendRequestInfo}>
-                  <strong>{request.requester_username}</strong> wants to be your friend
-                </div>
-                <div className={styles.friendRequestActions}>
-                  <button
-                    className={styles.btnAccept}
-                    onClick={() => handleAcceptRequest(request.id)}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className={styles.btnReject}
-                    onClick={() => handleRejectRequest(request.id)}
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          </>
         )}
       </div>
     </>
