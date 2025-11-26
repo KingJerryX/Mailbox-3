@@ -12,7 +12,7 @@ export default function Games({ user, setUser }) {
   const [ttlStats, setTtlStats] = useState({ total_games: 0, correct_guesses: 0 });
   const [hangmanStats, setHangmanStats] = useState({ games_played: 0, games_won: 0, win_percentage: 0 });
   const [notification, setNotification] = useState(null);
-  const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'pending'
+  const [activeTab, setActiveTab] = useState('games'); // 'games', 'requests', or 'pending'
   const router = useRouter();
 
   useEffect(() => {
@@ -232,6 +232,12 @@ export default function Games({ user, setUser }) {
         {/* Tabs */}
         <div className={styles.tabs}>
           <button
+            className={`${styles.tab} ${activeTab === 'games' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('games')}
+          >
+            🎮 Games
+          </button>
+          <button
             className={`${styles.tab} ${activeTab === 'requests' ? styles.tabActive : ''}`}
             onClick={() => setActiveTab('requests')}
           >
@@ -250,6 +256,85 @@ export default function Games({ user, setUser }) {
             )}
           </button>
         </div>
+
+        {/* Games Tab - Game options and stats */}
+        {activeTab === 'games' && (
+          <div className={styles.tabContent}>
+            {/* Game Cards */}
+            <div className={styles.gamesGrid}>
+              <Link href="/games/two-truths/create" className={styles.gameCard}>
+                <div className={styles.gameIcon}>🎯</div>
+                <h3 className={styles.gameTitle}>Two Truths & a Lie</h3>
+                <p className={styles.gameDescription}>
+                  Create a game with 2 truths and 1 lie, then challenge your partner to guess!
+                </p>
+                <div className={styles.gameAction}>Create Game →</div>
+              </Link>
+
+              <Link href="/games/hangman/create" className={styles.gameCard}>
+                <div className={styles.gameIcon}>🤔</div>
+                <h3 className={styles.gameTitle}>Hangman</h3>
+                <p className={styles.gameDescription}>
+                  Create a word puzzle and challenge your partner to guess it letter by letter!
+                </p>
+                <div className={styles.gameAction}>Create Game →</div>
+              </Link>
+            </div>
+
+            {/* Stats Section */}
+            <div className={styles.statsCard}>
+              <h2 className={styles.statsTitle}>Two Truths & a Lie Stats</h2>
+              <div className={styles.statsGrid}>
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{ttlStats.correct_guesses}</div>
+                  <div className={styles.statLabel}>Correct Guesses</div>
+                </div>
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{ttlStats.total_games}</div>
+                  <div className={styles.statLabel}>Total Games</div>
+                </div>
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{ttlAccuracy}%</div>
+                  <div className={styles.statLabel}>Accuracy</div>
+                </div>
+              </div>
+              {ttlStats.total_games > 0 && (
+                <div className={styles.progressBar}>
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${ttlAccuracy}%` }}
+                  ></div>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.statsCard}>
+              <h2 className={styles.statsTitle}>Hangman Stats</h2>
+              <div className={styles.statsGrid}>
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{hangmanStats.games_won}</div>
+                  <div className={styles.statLabel}>Games Won</div>
+                </div>
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{hangmanStats.games_played}</div>
+                  <div className={styles.statLabel}>Games Played</div>
+                </div>
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{hangmanStats.win_percentage.toFixed(1)}%</div>
+                  <div className={styles.statLabel}>Win Percentage</div>
+                </div>
+              </div>
+              {hangmanStats.games_played > 0 && (
+                <div className={styles.progressBar}>
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${hangmanStats.win_percentage}%` }}
+                  ></div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Game Requests Tab - Games sent to player */}
         {activeTab === 'requests' && (
@@ -335,80 +420,6 @@ export default function Games({ user, setUser }) {
             )}
           </div>
         )}
-
-        {/* Game Cards */}
-        <div className={styles.gamesGrid}>
-          <Link href="/games/two-truths/create" className={styles.gameCard}>
-            <div className={styles.gameIcon}>🎯</div>
-            <h3 className={styles.gameTitle}>Two Truths & a Lie</h3>
-            <p className={styles.gameDescription}>
-              Create a game with 2 truths and 1 lie, then challenge your partner to guess!
-            </p>
-            <div className={styles.gameAction}>Create Game →</div>
-          </Link>
-
-          <Link href="/games/hangman/create" className={styles.gameCard}>
-            <div className={styles.gameIcon}>🤔</div>
-            <h3 className={styles.gameTitle}>Hangman</h3>
-            <p className={styles.gameDescription}>
-              Create a word puzzle and challenge your partner to guess it letter by letter!
-            </p>
-            <div className={styles.gameAction}>Create Game →</div>
-          </Link>
-        </div>
-
-        {/* Stats Section - Moved to Bottom and Smaller */}
-        <div className={styles.statsCard}>
-          <h2 className={styles.statsTitle}>Two Truths & a Lie Stats</h2>
-          <div className={styles.statsGrid}>
-            <div className={styles.statItem}>
-              <div className={styles.statValue}>{ttlStats.correct_guesses}</div>
-              <div className={styles.statLabel}>Correct Guesses</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statValue}>{ttlStats.total_games}</div>
-              <div className={styles.statLabel}>Total Games</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statValue}>{ttlAccuracy}%</div>
-              <div className={styles.statLabel}>Accuracy</div>
-            </div>
-          </div>
-          {ttlStats.total_games > 0 && (
-            <div className={styles.progressBar}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${ttlAccuracy}%` }}
-              ></div>
-            </div>
-          )}
-        </div>
-
-        <div className={styles.statsCard}>
-          <h2 className={styles.statsTitle}>Hangman Stats</h2>
-          <div className={styles.statsGrid}>
-            <div className={styles.statItem}>
-              <div className={styles.statValue}>{hangmanStats.games_won}</div>
-              <div className={styles.statLabel}>Games Won</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statValue}>{hangmanStats.games_played}</div>
-              <div className={styles.statLabel}>Games Played</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statValue}>{hangmanStats.win_percentage.toFixed(1)}%</div>
-              <div className={styles.statLabel}>Win Percentage</div>
-            </div>
-          </div>
-          {hangmanStats.games_played > 0 && (
-            <div className={styles.progressBar}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${hangmanStats.win_percentage}%` }}
-              ></div>
-            </div>
-          )}
-        </div>
       </div>
     </>
   );
