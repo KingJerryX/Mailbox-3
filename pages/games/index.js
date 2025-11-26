@@ -7,8 +7,12 @@ import styles from '../../styles/games.module.css';
 export default function Games({ user, setUser }) {
   const [pendingTTLGames, setPendingTTLGames] = useState([]);
   const [pendingHangmanGames, setPendingHangmanGames] = useState([]);
+  const [sentTTLGames, setSentTTLGames] = useState([]);
+  const [sentHangmanGames, setSentHangmanGames] = useState([]);
   const [ttlStats, setTtlStats] = useState({ total_games: 0, correct_guesses: 0 });
   const [hangmanStats, setHangmanStats] = useState({ games_played: 0, games_won: 0, win_percentage: 0 });
+  const [notification, setNotification] = useState(null);
+  const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'pending'
   const router = useRouter();
 
   useEffect(() => {
@@ -18,9 +22,16 @@ export default function Games({ user, setUser }) {
     }
     fetchPendingTTLGames();
     fetchPendingHangmanGames();
+    fetchSentTTLGames();
+    fetchSentHangmanGames();
     fetchTTLStats();
     fetchHangmanStats();
   }, [user]);
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
 
   const getToken = () => {
     return document.cookie
@@ -89,6 +100,99 @@ export default function Games({ user, setUser }) {
     }
   };
 
+  const fetchSentTTLGames = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/ttl/sent', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSentTTLGames(data.games || []);
+      }
+    } catch (err) {
+      console.error('Error fetching sent TTL games:', err);
+    }
+  };
+
+  const fetchSentHangmanGames = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch('/api/hangman/sent', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSentHangmanGames(data.games || []);
+      }
+    } catch (err) {
+      console.error('Error fetching sent hangman games:', err);
+    }
+  };
+
+  const handleWithdraw = async (gameId, type) => {
+    if (!confirm('Are you sure you want to withdraw this game?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const endpoint = type === 'ttl'
+        ? `/api/ttl/${gameId}/withdraw`
+        : `/api/hangman/${gameId}/withdraw`;
+
+      const res = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        showNotification('✅ Game withdrawn successfully', 'success');
+        fetchSentTTLGames();
+        fetchSentHangmanGames();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to withdraw game', 'error');
+      }
+    } catch (err) {
+      console.error('Error withdrawing game:', err);
+      showNotification('Error withdrawing game', 'error');
+    }
+  };
+
+  const handleDecline = async (gameId, type, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!confirm('Are you sure you want to decline this game?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const endpoint = type === 'ttl'
+        ? `/api/ttl/${gameId}/decline`
+        : `/api/hangman/${gameId}/decline`;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        showNotification('✅ Game declined successfully', 'success');
+        fetchPendingTTLGames();
+        fetchPendingHangmanGames();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to decline game', 'error');
+      }
+    } catch (err) {
+      console.error('Error declining game:', err);
+      showNotification('Error declining game', 'error');
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -102,6 +206,11 @@ export default function Games({ user, setUser }) {
     ...pendingHangmanGames.map(g => ({ ...g, type: 'hangman' }))
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
+  const allSentGames = [
+    ...sentTTLGames.map(g => ({ ...g, type: 'ttl' })),
+    ...sentHangmanGames.map(g => ({ ...g, type: 'hangman' }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
   return (
     <>
       <Head>
@@ -109,37 +218,121 @@ export default function Games({ user, setUser }) {
       </Head>
 
       <div className={styles.container}>
+        {notification && (
+          <div className={`${styles.notification} ${styles[notification.type]}`}>
+            {notification.message}
+          </div>
+        )}
+
         <div className={styles.header}>
           <h1 className={styles.title}>🎮 Games</h1>
           <p className={styles.subtitle}>Play fun games together!</p>
         </div>
 
-        {/* Pending Games - Moved to Top */}
-        {allPendingGames.length > 0 && (
-          <div className={styles.pendingSection}>
-            <h2 className={styles.sectionTitle}>📬 Pending Games</h2>
-            <div className={styles.pendingGamesList}>
-              {allPendingGames.map(game => (
-                <Link
-                  key={`${game.type}-${game.id}`}
-                  href={game.type === 'ttl'
-                    ? `/games/two-truths/play/${game.id}`
-                    : `/games/hangman/play/${game.id}`
-                  }
-                  className={styles.pendingGameCard}
-                >
-                  <div className={styles.pendingGameHeader}>
-                    <span className={styles.pendingGameFrom}>
-                      {game.type === 'ttl' ? '🎯' : '🤔'} From: {game.creator_username}
-                    </span>
-                    <span className={styles.pendingGameDate}>
-                      {new Date(game.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className={styles.pendingGameAction}>Play Now →</div>
-                </Link>
-              ))}
-            </div>
+        {/* Tabs */}
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === 'requests' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('requests')}
+          >
+            📬 Game Requests
+            {allPendingGames.length > 0 && (
+              <span className={styles.tabBadge}>{allPendingGames.length}</span>
+            )}
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'pending' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('pending')}
+          >
+            📤 Pending Games
+            {allSentGames.length > 0 && (
+              <span className={styles.tabBadge}>{allSentGames.length}</span>
+            )}
+          </button>
+        </div>
+
+        {/* Game Requests Tab - Games sent to player */}
+        {activeTab === 'requests' && (
+          <div className={styles.tabContent}>
+            {allPendingGames.length > 0 ? (
+              <div className={styles.pendingSection}>
+                <h2 className={styles.sectionTitle}>📬 Game Requests</h2>
+                <p className={styles.sectionSubtitle}>Games others have sent to you</p>
+                <div className={styles.pendingGamesList}>
+                  {allPendingGames.map(game => (
+                    <div key={`${game.type}-${game.id}`} className={styles.pendingGameCard}>
+                      <Link
+                        href={game.type === 'ttl'
+                          ? `/games/two-truths/play/${game.id}`
+                          : `/games/hangman/play/${game.id}`
+                        }
+                        className={styles.pendingGameLink}
+                      >
+                        <div className={styles.pendingGameHeader}>
+                          <span className={styles.pendingGameFrom}>
+                            {game.type === 'ttl' ? '🎯' : '🤔'} From: {game.creator_username}
+                          </span>
+                          <span className={styles.pendingGameDate}>
+                            {new Date(game.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className={styles.pendingGameAction}>Play Now →</div>
+                      </Link>
+                      <button
+                        className={styles.declineButton}
+                        onClick={(e) => handleDecline(game.id, game.type, e)}
+                        title="Decline game"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>📭</div>
+                <p>No game requests at the moment</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Pending Games Tab - Games sent by player */}
+        {activeTab === 'pending' && (
+          <div className={styles.tabContent}>
+            {allSentGames.length > 0 ? (
+              <div className={styles.pendingSection}>
+                <h2 className={styles.sectionTitle}>📤 Pending Games</h2>
+                <p className={styles.sectionSubtitle}>Games you have sent to others</p>
+                <div className={styles.pendingGamesList}>
+                  {allSentGames.map(game => (
+                    <div key={`sent-${game.type}-${game.id}`} className={styles.pendingGameCard}>
+                      <div className={styles.pendingGameHeader}>
+                        <span className={styles.pendingGameFrom}>
+                          {game.type === 'ttl' ? '🎯' : '🤔'} To: {game.recipient_username || game.receiver_username}
+                        </span>
+                        <span className={styles.pendingGameDate}>
+                          {new Date(game.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <button
+                        className={styles.withdrawButton}
+                        onClick={() => handleWithdraw(game.id, game.type)}
+                        title="Withdraw game"
+                      >
+                        ↶ Withdraw
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>📭</div>
+                <p>No pending games. Create a game to send to someone!</p>
+              </div>
+            )}
           </div>
         )}
 

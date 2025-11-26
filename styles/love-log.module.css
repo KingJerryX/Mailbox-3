@@ -397,6 +397,60 @@
   margin-bottom: 15px;
 }
 
+.reactionsContainer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reactionButton {
+  padding: 8px 16px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+}
+
+.reactionButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.reactionSad {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.reactionSad:hover {
+  background: #dbeafe;
+}
+
+.reactionNeutral {
+  color: #d4a574;
+  border-color: #d4a574;
+}
+
+.reactionNeutral:hover {
+  background: #f5e6d3;
+}
+
+.reactionHappy {
+  color: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.reactionHappy:hover {
+  background: #fef3c7;
+}
+
 .postActions {
   display: flex;
   gap: 8px;
