@@ -11,7 +11,7 @@ export default function LoveLog({ user }) {
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '', mood: '' });
   const [editingPostId, setEditingPostId] = useState(null);
-  const [editPost, setEditPost] = useState({ title: '', content: '' });
+  const [editPost, setEditPost] = useState({ title: '', content: '', mood: '' });
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [showFriendRequest, setShowFriendRequest] = useState(false);
@@ -226,19 +226,23 @@ export default function LoveLog({ user }) {
 
   const handleEditPost = (post) => {
     setEditingPostId(post.id);
-    setEditPost({ title: post.title, content: post.content });
+    setEditPost({ title: post.title, content: post.content, mood: post.mood || '' });
     setShowNewPost(false);
   };
 
   const handleCancelEdit = () => {
     setEditingPostId(null);
-    setEditPost({ title: '', content: '' });
+    setEditPost({ title: '', content: '', mood: '' });
   };
 
   const handleUpdatePost = async (e) => {
     e.preventDefault();
     if (!editPost.title.trim() || !editPost.content.trim()) {
       showNotification('Please fill in both title and content!', 'error');
+      return;
+    }
+    if (!editPost.mood) {
+      showNotification('Please select a mood emoji!', 'error');
       return;
     }
 
@@ -253,14 +257,15 @@ export default function LoveLog({ user }) {
         body: JSON.stringify({
           postId: editingPostId,
           title: editPost.title.trim(),
-          content: editPost.content.trim()
+          content: editPost.content.trim(),
+          mood: editPost.mood
         })
       });
 
       if (res.ok) {
         showNotification('✨ Post updated!', 'success');
         setEditingPostId(null);
-        setEditPost({ title: '', content: '' });
+        setEditPost({ title: '', content: '', mood: '' });
         fetchPosts(user.id);
       } else {
         const data = await res.json();
@@ -598,6 +603,32 @@ export default function LoveLog({ user }) {
                 rows="8"
                 required
               />
+              <div className={styles.moodSelection}>
+                <label className={styles.moodLabel}>Select Mood *</label>
+                <div className={styles.moodButtons}>
+                  <button
+                    type="button"
+                    className={`${styles.moodButton} ${styles.moodSad} ${editPost.mood === 'sad' ? styles.moodSelected : ''}`}
+                    onClick={() => setEditPost({ ...editPost, mood: 'sad' })}
+                  >
+                    😢 Sad
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.moodButton} ${styles.moodNeutral} ${editPost.mood === 'neutral' ? styles.moodSelected : ''}`}
+                    onClick={() => setEditPost({ ...editPost, mood: 'neutral' })}
+                  >
+                    😐 Neutral
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.moodButton} ${styles.moodHappy} ${editPost.mood === 'happy' ? styles.moodSelected : ''}`}
+                    onClick={() => setEditPost({ ...editPost, mood: 'happy' })}
+                  >
+                    😊 Happy
+                  </button>
+                </div>
+              </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="submit" className={styles.btnPublish}>
                   💾 Save Changes
@@ -666,9 +697,9 @@ export default function LoveLog({ user }) {
                       </div>
                     )}
                   </div>
-                  {/* Mood Display - Before Title */}
-                  <div className={styles.postTitleContainer}>
-                    {post.mood && (
+                  {/* Mood Display - Big at Top */}
+                  {post.mood && (
+                    <div className={styles.moodDisplayTop}>
                       <span className={`${styles.moodEmoji} ${
                         post.mood === 'sad' ? styles.moodSadEmoji :
                         post.mood === 'neutral' ? styles.moodNeutralEmoji :
@@ -676,9 +707,9 @@ export default function LoveLog({ user }) {
                       }`}>
                         {post.mood === 'sad' ? '😢' : post.mood === 'neutral' ? '😐' : '😊'}
                       </span>
-                    )}
-                    <h2 className={styles.postTitle}>{post.title}</h2>
-                  </div>
+                    </div>
+                  )}
+                  <h2 className={styles.postTitle}>{post.title}</h2>
                   <div className={styles.postContent}>{post.content}</div>
                 </div>
               ))

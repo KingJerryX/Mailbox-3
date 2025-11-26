@@ -60,14 +60,18 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      const { postId, title, content } = req.body;
+      const { postId, title, content, mood } = req.body;
 
       if (!postId || !title || !content) {
         return res.status(400).json({ error: 'Post ID, title, and content are required' });
       }
 
+      if (!mood || !['sad', 'neutral', 'happy'].includes(mood)) {
+        return res.status(400).json({ error: 'Mood is required and must be sad, neutral, or happy' });
+      }
+
       try {
-        const post = await mailbox.updateLoveLogPost(postId, user.id, title, content);
+        const post = await mailbox.updateLoveLogPost(postId, user.id, title, content, mood);
         return res.status(200).json({
           success: true,
           post

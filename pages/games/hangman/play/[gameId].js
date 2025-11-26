@@ -339,7 +339,14 @@ export default function PlayHangman({ user, setUser }) {
 
         {/* Word Display */}
         <div className={styles.wordDisplay}>
-          <div className={styles.maskedWord}>
+          <div
+            className={styles.maskedWord}
+            style={{
+              fontSize: game.masked_word.replace(/\s/g, '').length > 8
+                ? 'clamp(24px, 4vw, 48px)'
+                : 'clamp(32px, 5vw, 48px)'
+            }}
+          >
             {game.masked_word.split(' ').map((char, idx) => {
               const letter = char === '_' ? null : char.toLowerCase();
               const isFlipping = letter && flipLetters.has(letter);

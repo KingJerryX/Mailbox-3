@@ -144,23 +144,26 @@
   display: flex;
   justify-content: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   background: rgba(255, 255, 255, 0.95);
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   overflow-x: auto;
   overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .wordChar {
-  font-size: 48px;
+  font-size: inherit;
   font-weight: bold;
   color: #667eea;
-  min-width: 50px;
+  min-width: 0.8em;
   text-align: center;
   display: inline-block;
   transition: transform 0.6s;
+  flex-shrink: 0;
+  padding: 0 2px;
 }
 
 .charFlip {
@@ -377,17 +380,18 @@
 
   .maskedWord {
     padding: 20px 10px;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: nowrap;
     justify-content: flex-start;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    font-size: clamp(20px, 6vw, 36px) !important;
   }
 
   .wordChar {
-    font-size: 32px;
-    min-width: 35px;
+    min-width: 0.7em;
     flex-shrink: 0;
+    padding: 0 1px;
   }
 
   .hangmanDrawing {
