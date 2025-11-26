@@ -45,19 +45,24 @@ export default async function handler(req, res) {
 
     if (req.method === 'PATCH') {
       const { requestId, action } = req.body;
+      const numericRequestId = parseInt(requestId, 10);
 
       if (!requestId || !action) {
         return res.status(400).json({ error: 'requestId and action are required' });
       }
 
+      if (Number.isNaN(numericRequestId)) {
+        return res.status(400).json({ error: 'requestId must be a number' });
+      }
+
       if (action === 'accept') {
-        await mailbox.acceptFriendRequest(requestId, user.id);
+        await mailbox.acceptFriendRequest(numericRequestId, user.id);
         return res.status(200).json({
           success: true,
           message: 'Friend request accepted'
         });
       } else if (action === 'reject') {
-        await mailbox.rejectFriendRequest(requestId, user.id);
+        await mailbox.rejectFriendRequest(numericRequestId, user.id);
         return res.status(200).json({
           success: true,
           message: 'Friend request rejected'
@@ -76,6 +81,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
-
-
