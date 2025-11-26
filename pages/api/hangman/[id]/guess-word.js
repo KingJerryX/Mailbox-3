@@ -1,5 +1,5 @@
-import { verifyToken } from '../../../lib/auth.js';
-import * as mailbox from '../../../lib/mailbox.js';
+import { verifyToken } from '../../../../lib/auth.js';
+import * as mailbox from '../../../../lib/mailbox.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
