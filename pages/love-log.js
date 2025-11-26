@@ -9,7 +9,7 @@ export default function LoveLog({ user }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewPost, setShowNewPost] = useState(false);
-  const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [newPost, setNewPost] = useState({ title: '', content: '', mood: '' });
   const [editingPostId, setEditingPostId] = useState(null);
   const [editPost, setEditPost] = useState({ title: '', content: '' });
   const [friendRequests, setFriendRequests] = useState([]);
@@ -103,6 +103,10 @@ export default function LoveLog({ user }) {
       showNotification('Please fill in both title and content!', 'error');
       return;
     }
+    if (!newPost.mood) {
+      showNotification('Please select a mood emoji!', 'error');
+      return;
+    }
 
     try {
       const token = getToken();
@@ -114,13 +118,14 @@ export default function LoveLog({ user }) {
         },
         body: JSON.stringify({
           title: newPost.title.trim(),
-          content: newPost.content.trim()
+          content: newPost.content.trim(),
+          mood: newPost.mood
         })
       });
 
       if (res.ok) {
         showNotification('✨ Post published!', 'success');
-        setNewPost({ title: '', content: '' });
+        setNewPost({ title: '', content: '', mood: '' });
         setShowNewPost(false);
         fetchPosts(user.id);
       } else {
@@ -570,6 +575,32 @@ export default function LoveLog({ user }) {
                 rows="8"
                 required
               />
+              <div className={styles.moodSelection}>
+                <label className={styles.moodLabel}>Select Mood *</label>
+                <div className={styles.moodButtons}>
+                  <button
+                    type="button"
+                    className={`${styles.moodButton} ${styles.moodSad} ${newPost.mood === 'sad' ? styles.moodSelected : ''}`}
+                    onClick={() => setNewPost({ ...newPost, mood: 'sad' })}
+                  >
+                    😢 Sad
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.moodButton} ${styles.moodNeutral} ${newPost.mood === 'neutral' ? styles.moodSelected : ''}`}
+                    onClick={() => setNewPost({ ...newPost, mood: 'neutral' })}
+                  >
+                    😐 Neutral
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.moodButton} ${styles.moodHappy} ${newPost.mood === 'happy' ? styles.moodSelected : ''}`}
+                    onClick={() => setNewPost({ ...newPost, mood: 'happy' })}
+                  >
+                    😊 Happy
+                  </button>
+                </div>
+              </div>
               <button type="submit" className={styles.btnPublish}>
                 📤 Publish
               </button>
@@ -666,6 +697,18 @@ export default function LoveLog({ user }) {
                       </div>
                     )}
                   </div>
+                  {/* Mood Display */}
+                  {post.mood && (
+                    <div className={styles.moodDisplay}>
+                      <span className={`${styles.moodEmoji} ${
+                        post.mood === 'sad' ? styles.moodSadEmoji :
+                        post.mood === 'neutral' ? styles.moodNeutralEmoji :
+                        styles.moodHappyEmoji
+                      }`}>
+                        {post.mood === 'sad' ? '😢' : post.mood === 'neutral' ? '😐' : '😊'}
+                      </span>
+                    </div>
+                  )}
                   {/* Reactions */}
                   <div className={styles.reactionsContainer}>
                     <button

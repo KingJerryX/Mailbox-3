@@ -61,15 +61,6 @@ export default function Layout({ children, user, logout }) {
                     </Link>
                   </>
                 )}
-                <span className={styles.userInfo}>
-                  👤 {user.username}
-                </span>
-                <Link href="/settings" className={styles.link}>
-                  ⚙️
-                </Link>
-                <button onClick={logout} className={styles.logoutButton}>
-                  Logout
-                </button>
               </>
             ) : (
               <>
@@ -82,6 +73,19 @@ export default function Layout({ children, user, logout }) {
               </>
             )}
           </div>
+          {user && (
+            <div className={styles.navRight}>
+              <span className={styles.userInfo}>
+                👤 {user.username}
+              </span>
+              <Link href="/settings" className={styles.link}>
+                ⚙️
+              </Link>
+              <button onClick={logout} className={styles.logoutButton}>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </nav>
       <main className={styles.main}>{children}</main>

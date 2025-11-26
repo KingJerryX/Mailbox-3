@@ -23,13 +23,17 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'POST') {
-      const { title, content } = req.body;
+      const { title, content, mood } = req.body;
 
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
       }
 
-      const post = await mailbox.createLoveLogPost(user.id, title, content);
+      if (!mood || !['sad', 'neutral', 'happy'].includes(mood)) {
+        return res.status(400).json({ error: 'Mood is required and must be sad, neutral, or happy' });
+      }
+
+      const post = await mailbox.createLoveLogPost(user.id, title, content, mood);
 
       return res.status(201).json({
         success: true,

@@ -451,6 +451,119 @@
   background: #fef3c7;
 }
 
+/* Mood Selection */
+.moodSelection {
+  margin-bottom: 20px;
+}
+
+.moodLabel {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.moodButtons {
+  display: flex;
+  gap: 15px;
+}
+
+.moodButton {
+  flex: 1;
+  padding: 15px 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.moodButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.moodSad {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.moodSad:hover {
+  background: #dbeafe;
+}
+
+.moodSad.moodSelected {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.moodNeutral {
+  color: #d4a574;
+  border-color: #d4a574;
+}
+
+.moodNeutral:hover {
+  background: #f5e6d3;
+}
+
+.moodNeutral.moodSelected {
+  background: #d4a574;
+  color: white;
+  border-color: #d4a574;
+}
+
+.moodHappy {
+  color: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.moodHappy:hover {
+  background: #fef3c7;
+}
+
+.moodHappy.moodSelected {
+  background: #fbbf24;
+  color: white;
+  border-color: #fbbf24;
+}
+
+/* Mood Display */
+.moodDisplay {
+  margin-bottom: 15px;
+  padding: 10px 0;
+}
+
+.moodEmoji {
+  font-size: 32px;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.moodSadEmoji {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.moodNeutralEmoji {
+  background: #f5e6d3;
+  color: #d4a574;
+}
+
+.moodHappyEmoji {
+  background: #fef3c7;
+  color: #fbbf24;
+}
+
 .postActions {
   display: flex;
   gap: 8px;
