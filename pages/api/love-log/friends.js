@@ -3,7 +3,7 @@ import * as mailbox from '../../../lib/mailbox.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, DELETE, OPTIONS');
+res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -25,6 +25,25 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const friends = await mailbox.getFriends(user.id);
       return res.status(200).json({ friends });
+    }
+
+    if (req.method === 'PATCH') {
+      const { friendId, action } = req.body;
+
+      if (!friendId || !action) {
+        return res.status(400).json({ error: 'Friend ID and action are required' });
+      }
+
+      if (action === 'promote') {
+        await mailbox.promoteFriendToLover(user.id, friendId);
+        return res.status(200).json({
+          success: true,
+          message: 'Friend promoted to lover',
+          loverId: friendId
+        });
+      }
+
+      return res.status(400).json({ error: 'Unsupported action' });
     }
 
     if (req.method === 'DELETE') {

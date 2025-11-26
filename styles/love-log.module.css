@@ -149,13 +149,13 @@
 .friendsList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
   margin-top: 15px;
 }
 
 .friendItem {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
 }
 
@@ -171,6 +171,10 @@
   background: white;
   color: #374151;
   text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .friendButton:hover {
@@ -181,17 +185,89 @@
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.btnRemoveFriend {
-  padding: 8px 12px;
-  border: 2px solid #ef4444;
-  border-radius: 8px;
-  font-size: 14px;
+.friendButtonLover {
+  border-color: #f472b6;
+  background: rgba(244, 114, 182, 0.08);
+  color: #be185d;
+}
+
+.friendItemActive .friendButton {
+  border-color: #667eea;
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.25);
+}
+
+.friendActions {
+  width: 100%;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.friendOptionButton {
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  border: none;
+}
+
+.promoteButton {
+  background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+  color: white;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+}
+
+.promoteButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.unfriendButton {
   background: white;
+  border: 2px solid #ef4444;
   color: #ef4444;
-  min-width: 40px;
+}
+
+.unfriendButton:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.friendStatusMessage {
+  font-weight: 600;
+  color: #ec4899;
+}
+
+.friendBadge {
+  background: #ec4899;
+  color: white;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.friendButton:hover .friendBadge,
+.friendLogButton:hover .friendBadge {
+  background: white;
+  color: #ec4899;
+}
+
+.friendManageHint {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.friendButtonLabel {
+  flex: 1;
+  text-align: left;
 }
 
 .btnRemoveFriend:hover {
@@ -885,6 +961,10 @@
   background: white;
   color: #667eea;
   text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .friendLogButton:hover {
@@ -892,6 +972,11 @@
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.friendLogButtonLover {
+  border-color: #f472b6;
+  color: #be185d;
 }
 
 .noFriendsMessage {

@@ -20,6 +20,8 @@ export default function LoveLog({ user }) {
   const [friends, setFriends] = useState([]);
   const [showFriendRequest, setShowFriendRequest] = useState(false);
   const [friendUsername, setFriendUsername] = useState('');
+  const [activeFriendOptions, setActiveFriendOptions] = useState(null);
+  const [friendActionLoadingId, setFriendActionLoadingId] = useState(null);
   const [notification, setNotification] = useState(null);
   const [isCalendarVisible, setIsCalendarVisible] = useState(true);
   const router = useRouter();
@@ -38,6 +40,12 @@ export default function LoveLog({ user }) {
       fetchPosts();
     }
   }, [user, viewingUserId, currentYear, currentMonth]);
+
+  useEffect(() => {
+    if (activeFriendOptions && !friends.find(friend => friend.id === activeFriendOptions)) {
+      setActiveFriendOptions(null);
+    }
+  }, [friends, activeFriendOptions]);
 
   const getToken = () => {
     return document.cookie
@@ -316,12 +324,46 @@ export default function LoveLog({ user }) {
     }
   };
 
+  const toggleFriendOptions = (friendId) => {
+    setActiveFriendOptions(prev => (prev === friendId ? null : friendId));
+  };
+
+  const handlePromoteFriend = async (friendId, friendUsername) => {
+    try {
+      setFriendActionLoadingId(friendId);
+      const token = getToken();
+      const res = await fetch('/api/love-log/friends', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ friendId, action: 'promote' })
+      });
+
+      if (res.ok) {
+        showNotification(`💘 ${friendUsername} is now marked as your Lover`, 'success');
+        setActiveFriendOptions(null);
+        await fetchFriends();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to promote friend', 'error');
+      }
+    } catch (err) {
+      console.error('Error promoting friend:', err);
+      showNotification('Error promoting friend', 'error');
+    } finally {
+      setFriendActionLoadingId(null);
+    }
+  };
+
   const handleRemoveFriend = async (friendId, friendUsername) => {
     if (!confirm(`Are you sure you want to remove ${friendUsername} as a friend?`)) {
       return;
     }
 
     try {
+      setFriendActionLoadingId(friendId);
       const token = getToken();
       const res = await fetch('/api/love-log/friends', {
         method: 'DELETE',
@@ -334,7 +376,8 @@ export default function LoveLog({ user }) {
 
       if (res.ok) {
         showNotification(`👋 Removed ${friendUsername} as a friend`, 'success');
-        fetchFriends();
+        await fetchFriends();
+        setActiveFriendOptions(null);
       } else {
         const data = await res.json();
         showNotification(data.error || 'Failed to remove friend', 'error');
@@ -342,6 +385,8 @@ export default function LoveLog({ user }) {
     } catch (err) {
       console.error('Error removing friend:', err);
       showNotification('Error removing friend', 'error');
+    } finally {
+      setFriendActionLoadingId(null);
     }
   };
 
@@ -520,10 +565,11 @@ export default function LoveLog({ user }) {
                   {friends.map(friend => (
                     <button
                       key={friend.id}
-                      className={styles.friendLogButton}
+                      className={`${styles.friendLogButton} ${friend.isLover ? styles.friendLogButtonLover : ''}`}
                       onClick={() => handleViewFriendLog(friend.id, friend.username)}
                     >
-                      {friend.username}
+                      <span>{friend.username}</span>
+                      {friend.isLover && <span className={styles.friendBadge}>Lover</span>}
                     </button>
                   ))}
                 </div>
@@ -533,20 +579,53 @@ export default function LoveLog({ user }) {
             </div>
             <div className={styles.friendsSection}>
               <h3>Manage Friends</h3>
-              {friends.length > 0 && (
-                <div className={styles.friendsList}>
-                  {friends.map(friend => (
-                    <div key={friend.id} className={styles.friendItem}>
-                      <span>{friend.username}</span>
-                      <button
-                        className={styles.btnRemoveFriend}
-                        onClick={() => handleRemoveFriend(friend.id, friend.username)}
+              {friends.length > 0 ? (
+                <>
+                  <p className={styles.friendManageHint}>Tap a friend to promote them to Lover or unfriend.</p>
+                  <div className={styles.friendsList}>
+                    {friends.map(friend => (
+                      <div
+                        key={friend.id}
+                        className={`${styles.friendItem} ${activeFriendOptions === friend.id ? styles.friendItemActive : ''}`}
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                        <button
+                          type="button"
+                          className={`${styles.friendButton} ${friend.isLover ? styles.friendButtonLover : ''}`}
+                          onClick={() => toggleFriendOptions(friend.id)}
+                        >
+                          <span className={styles.friendButtonLabel}>{friend.username}</span>
+                          {friend.isLover && <span className={styles.friendBadge}>Lover</span>}
+                        </button>
+                        {activeFriendOptions === friend.id && (
+                          <div className={styles.friendActions}>
+                            {!friend.isLover ? (
+                              <button
+                                type="button"
+                                className={`${styles.friendOptionButton} ${styles.promoteButton}`}
+                                onClick={() => handlePromoteFriend(friend.id, friend.username)}
+                                disabled={friendActionLoadingId === friend.id}
+                              >
+                                {friendActionLoadingId === friend.id ? 'Promoting...' : 'Promote to Lover'}
+                              </button>
+                            ) : (
+                              <div className={styles.friendStatusMessage}>❤️ Current Lover</div>
+                            )}
+                            <button
+                              type="button"
+                              className={`${styles.friendOptionButton} ${styles.unfriendButton}`}
+                              onClick={() => handleRemoveFriend(friend.id, friend.username)}
+                              disabled={friendActionLoadingId === friend.id}
+                            >
+                              {friendActionLoadingId === friend.id ? 'Removing...' : 'Unfriend'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className={styles.noFriendsMessage}>No friends yet. Add someone sweet to start sharing logs!</p>
               )}
               <button
                 className={styles.btnPrimary}
