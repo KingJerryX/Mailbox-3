@@ -110,17 +110,47 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .navLinks {
-    gap: 8px;
+  .navContent {
     flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .navLinks {
+    position: static;
+    transform: none;
+    left: auto;
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .navRight {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+    margin-left: 0;
+  }
+
+  .logo {
+    order: 1;
   }
 
   .link {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 8px 10px;
+    font-size: 12px;
   }
 
   .userInfo {
-    display: none;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .logoutButton {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }

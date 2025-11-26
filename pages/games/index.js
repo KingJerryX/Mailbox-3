@@ -12,7 +12,7 @@ export default function Games({ user, setUser }) {
   const [ttlStats, setTtlStats] = useState({ total_games: 0, correct_guesses: 0 });
   const [hangmanStats, setHangmanStats] = useState({ games_played: 0, games_won: 0, win_percentage: 0 });
   const [notification, setNotification] = useState(null);
-  const [activeTab, setActiveTab] = useState('games'); // 'games', 'requests', or 'pending'
+  const [activeTab, setActiveTab] = useState('games'); // 'games', 'stats', 'requests', or 'pending'
   const router = useRouter();
 
   useEffect(() => {
@@ -238,6 +238,12 @@ export default function Games({ user, setUser }) {
             🎮 Games
           </button>
           <button
+            className={`${styles.tab} ${activeTab === 'stats' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('stats')}
+          >
+            📊 Stats
+          </button>
+          <button
             className={`${styles.tab} ${activeTab === 'requests' ? styles.tabActive : ''}`}
             onClick={() => setActiveTab('requests')}
           >
@@ -257,7 +263,7 @@ export default function Games({ user, setUser }) {
           </button>
         </div>
 
-        {/* Games Tab - Game options and stats */}
+        {/* Games Tab - Game options only */}
         {activeTab === 'games' && (
           <div className={styles.tabContent}>
             {/* Game Cards */}
@@ -280,8 +286,12 @@ export default function Games({ user, setUser }) {
                 <div className={styles.gameAction}>Create Game →</div>
               </Link>
             </div>
+          </div>
+        )}
 
-            {/* Stats Section */}
+        {/* Stats Tab - Game statistics */}
+        {activeTab === 'stats' && (
+          <div className={styles.tabContent}>
             <div className={styles.statsCard}>
               <h2 className={styles.statsTitle}>Two Truths & a Lie Stats</h2>
               <div className={styles.statsGrid}>
