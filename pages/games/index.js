@@ -130,7 +130,7 @@ export default function Games({ user, setUser }) {
                 >
                   <div className={styles.pendingGameHeader}>
                     <span className={styles.pendingGameFrom}>
-                      {game.type === 'ttl' ? '🎯' : '🎯'} From: {game.creator_username}
+                      {game.type === 'ttl' ? '🎯' : '🤔'} From: {game.creator_username}
                     </span>
                     <span className={styles.pendingGameDate}>
                       {new Date(game.created_at).toLocaleDateString()}
@@ -155,7 +155,7 @@ export default function Games({ user, setUser }) {
           </Link>
 
           <Link href="/games/hangman/create" className={styles.gameCard}>
-            <div className={styles.gameIcon}>🎯</div>
+            <div className={styles.gameIcon}>🤔</div>
             <h3 className={styles.gameTitle}>Hangman</h3>
             <p className={styles.gameDescription}>
               Create a word puzzle and challenge your partner to guess it letter by letter!

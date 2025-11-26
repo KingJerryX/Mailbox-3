@@ -111,7 +111,7 @@ export default function PlayTTL({ user, setUser }) {
             className={styles.backButton}
             onClick={() => router.push('/games')}
           >
-            ← Back to Games
+            🏠 Return to Main Menu
           </button>
         </div>
       </div>
@@ -130,7 +130,7 @@ export default function PlayTTL({ user, setUser }) {
             className={styles.backButton}
             onClick={() => router.push('/games')}
           >
-            ← Back to Games
+            🏠 Return to Main Menu
           </button>
           <h1 className={styles.title}>🎯 Two Truths & a Lie</h1>
           <p className={styles.subtitle}>From: {game?.creator_username}</p>
@@ -205,7 +205,7 @@ export default function PlayTTL({ user, setUser }) {
                   className={styles.backButton}
                   onClick={() => router.push('/games')}
                 >
-                  ← Back to Games
+                  🏠 Return to Main Menu
                 </button>
               </>
             ) : (
@@ -215,7 +215,7 @@ export default function PlayTTL({ user, setUser }) {
                   className={styles.backButton}
                   onClick={() => router.push('/games')}
                 >
-                  ← Back to Games
+                  🏠 Return to Main Menu
                 </button>
               </div>
             )}
@@ -225,4 +225,3 @@ export default function PlayTTL({ user, setUser }) {
     </>
   );
 }
-

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import styles from '../../../../styles/hangman.module.css';
@@ -11,6 +11,7 @@ export default function PlayHangman({ user, setUser }) {
   const [showHint, setShowHint] = useState(false);
   const [flipLetters, setFlipLetters] = useState(new Set());
   const [notification, setNotification] = useState(null);
+  const prevRevealedLettersRef = useRef([]);
   const router = useRouter();
   const { gameId } = router.query;
 
@@ -58,13 +59,15 @@ export default function PlayHangman({ user, setUser }) {
       });
       if (res.ok) {
         const data = await res.json();
-        setGame(data.game);
 
-        // Check for newly revealed letters for flip effect
-        if (game && data.game.revealed_letters) {
-          const newRevealed = data.game.revealed_letters.filter(
-            letter => !game.revealed_letters.includes(letter)
+        // Check for newly revealed letters for flip effect (only once per letter)
+        if (data.game.revealed_letters) {
+          const currentRevealed = data.game.revealed_letters;
+          const prevRevealed = prevRevealedLettersRef.current;
+          const newRevealed = currentRevealed.filter(
+            letter => !prevRevealed.includes(letter)
           );
+
           if (newRevealed.length > 0) {
             newRevealed.forEach(letter => {
               setFlipLetters(prev => new Set([...prev, letter]));
@@ -74,10 +77,13 @@ export default function PlayHangman({ user, setUser }) {
                   next.delete(letter);
                   return next;
                 });
-              }, 1000);
+              }, 600); // Match animation duration
             });
+            prevRevealedLettersRef.current = currentRevealed;
           }
         }
+
+        setGame(data.game);
       } else {
         const errorData = await res.json();
         showNotification(`Error: ${errorData.error}`, 'error');
@@ -303,7 +309,7 @@ export default function PlayHangman({ user, setUser }) {
             className={styles.backButton}
             onClick={() => router.push('/games')}
           >
-            ← Back to Games
+            🏠 Return to Main Menu
           </button>
           <h1 className={styles.title}>🎯 Hangman</h1>
           <p className={styles.subtitle}>
@@ -355,6 +361,12 @@ export default function PlayHangman({ user, setUser }) {
             <div className={styles.confetti}>🎉</div>
             <h2>😄 You guessed correctly!</h2>
             <p>The word was: <strong>{game.target_word.toUpperCase()}</strong></p>
+            <button
+              className={styles.mainMenuButton}
+              onClick={() => router.push('/games')}
+            >
+              🏠 Return to Main Menu
+            </button>
           </div>
         )}
 
@@ -363,6 +375,12 @@ export default function PlayHangman({ user, setUser }) {
             <div className={styles.sadFace}>😢</div>
             <h2>Game Over!</h2>
             <p>The correct word was: <strong>{game.target_word.toUpperCase()}</strong></p>
+            <button
+              className={styles.mainMenuButton}
+              onClick={() => router.push('/games')}
+            >
+              🏠 Return to Main Menu
+            </button>
           </div>
         )}
 
