@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'POST') {
-      const { title, content, mood } = req.body;
+      const { title, content, mood, postDate } = req.body;
 
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
@@ -33,16 +33,23 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Mood is required and must be sad, neutral, or happy' });
       }
 
-      const post = await mailbox.createLoveLogPost(user.id, title, content, mood);
+      try {
+        const post = await mailbox.createLoveLogPost(user.id, title, content, mood, postDate);
 
-      return res.status(201).json({
-        success: true,
-        post
-      });
+        return res.status(201).json({
+          success: true,
+          post
+        });
+      } catch (error) {
+        if (error.message.includes('Only one entry allowed per day')) {
+          return res.status(400).json({ error: error.message });
+        }
+        throw error;
+      }
     }
 
     if (req.method === 'GET') {
-      const { userId } = req.query;
+      const { userId, year, month } = req.query;
 
       // If userId is provided, get posts for that specific user
       if (userId) {
@@ -50,12 +57,12 @@ export default async function handler(req, res) {
         if (isNaN(targetUserId)) {
           return res.status(400).json({ error: 'Invalid user ID' });
         }
-        const posts = await mailbox.getLoveLogPostsByUser(user.id, targetUserId);
+        const posts = await mailbox.getLoveLogPostsByUser(user.id, targetUserId, year ? parseInt(year) : null, month ? parseInt(month) : null);
         return res.status(200).json({ posts });
       }
 
       // Otherwise, get all visible posts (own + friends)
-      const posts = await mailbox.getLoveLogPosts(user.id);
+      const posts = await mailbox.getLoveLogPosts(user.id, year ? parseInt(year) : null, month ? parseInt(month) : null);
       return res.status(200).json({ posts });
     }
 
