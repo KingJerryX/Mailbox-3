@@ -330,37 +330,6 @@ export default function LoveLog({ user }) {
     }
   };
 
-  const handleReaction = async (postId, reactionType) => {
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/love-log/posts/${postId}/react`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ reactionType })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        // Update the post's reactions in the local state
-        setPosts(prevPosts =>
-          prevPosts.map(post =>
-            post.id === postId
-              ? { ...post, reactions: data.reactions }
-              : post
-          )
-        );
-      } else {
-        const errorData = await res.json();
-        showNotification(errorData.error || 'Failed to react', 'error');
-      }
-    } catch (err) {
-      console.error('Error reacting to post:', err);
-      showNotification('Error reacting to post', 'error');
-    }
-  };
 
   if (!user) {
     return null;
@@ -697,9 +666,9 @@ export default function LoveLog({ user }) {
                       </div>
                     )}
                   </div>
-                  {/* Mood Display */}
-                  {post.mood && (
-                    <div className={styles.moodDisplay}>
+                  {/* Mood Display - Before Title */}
+                  <div className={styles.postTitleContainer}>
+                    {post.mood && (
                       <span className={`${styles.moodEmoji} ${
                         post.mood === 'sad' ? styles.moodSadEmoji :
                         post.mood === 'neutral' ? styles.moodNeutralEmoji :
@@ -707,33 +676,9 @@ export default function LoveLog({ user }) {
                       }`}>
                         {post.mood === 'sad' ? '😢' : post.mood === 'neutral' ? '😐' : '😊'}
                       </span>
-                    </div>
-                  )}
-                  {/* Reactions */}
-                  <div className={styles.reactionsContainer}>
-                    <button
-                      className={`${styles.reactionButton} ${styles.reactionSad}`}
-                      onClick={() => handleReaction(post.id, 'sad')}
-                      title="Sad"
-                    >
-                      😢 {post.reactions?.sad || 0}
-                    </button>
-                    <button
-                      className={`${styles.reactionButton} ${styles.reactionNeutral}`}
-                      onClick={() => handleReaction(post.id, 'neutral')}
-                      title="Neutral"
-                    >
-                      😐 {post.reactions?.neutral || 0}
-                    </button>
-                    <button
-                      className={`${styles.reactionButton} ${styles.reactionHappy}`}
-                      onClick={() => handleReaction(post.id, 'happy')}
-                      title="Happy"
-                    >
-                      😊 {post.reactions?.happy || 0}
-                    </button>
+                    )}
+                    <h2 className={styles.postTitle}>{post.title}</h2>
                   </div>
-                  <h2 className={styles.postTitle}>{post.title}</h2>
                   <div className={styles.postContent}>{post.content}</div>
                 </div>
               ))

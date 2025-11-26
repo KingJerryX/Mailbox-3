@@ -397,58 +397,11 @@
   margin-bottom: 15px;
 }
 
-.reactionsContainer {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  padding: 10px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.reactionButton {
-  padding: 8px 16px;
-  border: 2px solid transparent;
-  border-radius: 20px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+.postTitleContainer {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: white;
-}
-
-.reactionButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.reactionSad {
-  color: #3b82f6;
-  border-color: #3b82f6;
-}
-
-.reactionSad:hover {
-  background: #dbeafe;
-}
-
-.reactionNeutral {
-  color: #d4a574;
-  border-color: #d4a574;
-}
-
-.reactionNeutral:hover {
-  background: #f5e6d3;
-}
-
-.reactionHappy {
-  color: #fbbf24;
-  border-color: #fbbf24;
-}
-
-.reactionHappy:hover {
-  background: #fef3c7;
+  gap: 15px;
+  margin-bottom: 15px;
 }
 
 /* Mood Selection */
@@ -536,32 +489,23 @@
 }
 
 /* Mood Display */
-.moodDisplay {
-  margin-bottom: 15px;
-  padding: 10px 0;
-}
-
 .moodEmoji {
-  font-size: 32px;
+  font-size: 48px;
   display: inline-block;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .moodSadEmoji {
-  background: #dbeafe;
-  color: #3b82f6;
+  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
 }
 
 .moodNeutralEmoji {
-  background: #f5e6d3;
-  color: #d4a574;
+  filter: drop-shadow(0 2px 4px rgba(212, 165, 116, 0.3));
 }
 
 .moodHappyEmoji {
-  background: #fef3c7;
-  color: #fbbf24;
+  filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3));
 }
 
 .postActions {
@@ -646,9 +590,10 @@
 .postTitle {
   font-size: 28px;
   color: #1f2937;
-  margin-bottom: 15px;
+  margin: 0;
   font-weight: 700;
   line-height: 1.3;
+  flex: 1;
 }
 
 .postContent {
@@ -695,15 +640,44 @@
   }
 
   .title {
-    font-size: 36px;
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 16px;
   }
 
   .post {
     padding: 20px;
   }
 
+  .postHeader {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .postTitleContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .moodEmoji {
+    font-size: 40px;
+  }
+
   .postTitle {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .postContent {
+    font-size: 15px;
+  }
+
+  .postActions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .friendRequest {
@@ -715,5 +689,38 @@
   .friendRequestActions {
     width: 100%;
     justify-content: flex-end;
+  }
+
+  .moodButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .moodButton {
+    width: 100%;
+  }
+
+  .actions,
+  .homeActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    padding: 14px 20px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    padding: 12px 16px;
   }
 }

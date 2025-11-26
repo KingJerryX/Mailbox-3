@@ -156,6 +156,14 @@
   gap: 10px;
   margin-bottom: 30px;
   border-bottom: 2px solid #e5e7eb;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .tab {
@@ -172,6 +180,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab:hover {
@@ -666,6 +676,36 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .tabs {
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 0;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: 14px;
+    gap: 6px;
+  }
+
+  .tabBadge {
+    font-size: 11px;
+    padding: 2px 6px;
+    min-width: 18px;
+  }
+
   .statsGrid {
     grid-template-columns: 1fr;
   }
@@ -676,5 +716,73 @@
 
   .gameCard {
     padding: 20px;
+  }
+
+  .gameIcon {
+    font-size: 48px;
+  }
+
+  .gameTitle {
+    font-size: 20px;
+  }
+
+  .gameDescription {
+    font-size: 14px;
+  }
+
+  .sectionTitle {
+    font-size: 24px;
+  }
+
+  .sectionSubtitle {
+    font-size: 13px;
+  }
+
+  .pendingGameCard {
+    padding: 18px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pendingGameLink {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .pendingGameHeader {
+    width: 100%;
+  }
+
+  .pendingGameFrom {
+    font-size: 16px;
+  }
+
+  .pendingGameDate {
+    font-size: 13px;
+  }
+
+  .pendingGameAction {
+    font-size: 16px;
+    padding: 8px 16px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .declineButton,
+  .withdrawButton {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 12px 16px;
+    min-width: auto;
   }
 }

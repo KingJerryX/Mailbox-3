@@ -149,6 +149,8 @@
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .wordChar {
@@ -358,12 +360,43 @@
   }
 
   .title {
-    font-size: 36px;
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .backButton {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+
+  .maskedWord {
+    padding: 20px 10px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .wordChar {
-    font-size: 36px;
-    min-width: 40px;
+    font-size: 32px;
+    min-width: 35px;
+    flex-shrink: 0;
+  }
+
+  .hangmanDrawing {
+    padding: 20px;
+  }
+
+  .hangmanSvg {
+    width: 150px;
+    height: 188px;
   }
 
   .alphabetGrid {
@@ -372,11 +405,55 @@
   }
 
   .letterButton {
-    padding: 12px;
+    padding: 10px;
     font-size: 16px;
   }
 
   .wordGuessForm {
     flex-direction: column;
+  }
+
+  .wordInput {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .wordGuessButton {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  .resultMessage {
+    padding: 30px 20px;
+  }
+
+  .resultMessage h2 {
+    font-size: 28px;
+  }
+
+  .resultMessage p {
+    font-size: 18px;
+  }
+
+  .alphabetSection,
+  .wordGuessSection {
+    padding: 20px;
+  }
+
+  .alphabetSection h3,
+  .wordGuessSection h3 {
+    font-size: 20px;
+  }
+
+  .hintDisplay {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 12px 16px;
   }
 }
