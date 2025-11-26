@@ -21,6 +21,7 @@ export default function LoveLog({ user }) {
   const [showFriendRequest, setShowFriendRequest] = useState(false);
   const [friendUsername, setFriendUsername] = useState('');
   const [notification, setNotification] = useState(null);
+  const [isCalendarVisible, setIsCalendarVisible] = useState(true);
   const router = useRouter();
 
   const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -135,6 +136,8 @@ export default function LoveLog({ user }) {
         showNotification('✨ Post published!', 'success');
         setNewPost({ title: '', content: '', mood: '', postDate: '' });
         setShowNewPost(false);
+        setSelectedDate(null);
+        setIsCalendarVisible(true);
         fetchPosts();
       } else {
         const data = await res.json();
@@ -151,11 +154,13 @@ export default function LoveLog({ user }) {
     setEditPost({ title: post.title, content: post.content, mood: post.mood || '' });
     setShowNewPost(false);
     setSelectedPost(null);
+    setIsCalendarVisible(false);
   };
 
   const handleCancelEdit = () => {
     setEditingPostId(null);
     setEditPost({ title: '', content: '', mood: '' });
+    handleBackToCalendar();
   };
 
   const handleUpdatePost = async (e) => {
@@ -190,6 +195,8 @@ export default function LoveLog({ user }) {
         setEditingPostId(null);
         setEditPost({ title: '', content: '', mood: '' });
         setSelectedPost(null);
+        setSelectedDate(null);
+        setIsCalendarVisible(true);
         fetchPosts();
       } else {
         const data = await res.json();
@@ -220,6 +227,8 @@ export default function LoveLog({ user }) {
       if (res.ok) {
         showNotification('🗑️ Post deleted!', 'success');
         setSelectedPost(null);
+        setSelectedDate(null);
+        setIsCalendarVisible(true);
         fetchPosts();
       } else {
         const data = await res.json();
@@ -358,6 +367,11 @@ export default function LoveLog({ user }) {
     setViewingUsername(user.username);
     setCurrentMonth(11);
     setCurrentYear(2025);
+    setIsCalendarVisible(true);
+    setSelectedPost(null);
+    setSelectedDate(null);
+    setShowNewPost(false);
+    setEditingPostId(null);
   };
 
   const handleViewFriendLog = (friendId, friendUsername) => {
@@ -365,6 +379,11 @@ export default function LoveLog({ user }) {
     setViewingUsername(friendUsername);
     setCurrentMonth(11);
     setCurrentYear(2025);
+    setIsCalendarVisible(true);
+    setSelectedPost(null);
+    setSelectedDate(null);
+    setShowNewPost(false);
+    setEditingPostId(null);
   };
 
   const handleBackToInitial = () => {
@@ -375,6 +394,17 @@ export default function LoveLog({ user }) {
     setSelectedDate(null);
     setShowNewPost(false);
     setEditingPostId(null);
+    setIsCalendarVisible(true);
+  };
+
+  const handleBackToCalendar = () => {
+    setIsCalendarVisible(true);
+    setSelectedPost(null);
+    setSelectedDate(null);
+    setShowNewPost(false);
+    setEditingPostId(null);
+    setNewPost({ title: '', content: '', mood: '', postDate: '' });
+    setEditPost({ title: '', content: '', mood: '' });
   };
 
   const handleDayClick = (day) => {
@@ -382,14 +412,16 @@ export default function LoveLog({ user }) {
     if (post) {
       setSelectedPost(post);
       setSelectedDate(day);
-    } else {
-      // Only allow creating posts for own log
-      if (viewingUserId === user.id) {
-        const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        setNewPost({ ...newPost, postDate: dateStr });
-        setShowNewPost(true);
-        setSelectedDate(day);
-      }
+      setShowNewPost(false);
+      setEditingPostId(null);
+      setIsCalendarVisible(false);
+    } else if (viewingUserId === user.id) {
+      const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      setNewPost({ ...newPost, postDate: dateStr });
+      setShowNewPost(true);
+      setSelectedDate(day);
+      setSelectedPost(null);
+      setIsCalendarVisible(false);
     }
   };
 
@@ -574,237 +606,248 @@ export default function LoveLog({ user }) {
               <h2>{viewingUserId === user.id ? 'My Log' : `${viewingUsername}'s Log`}</h2>
             </div>
 
-            {/* Month Navigation */}
-            <div className={styles.monthNavigation}>
-          <button
-            className={styles.monthNavButton}
-            onClick={() => {
-              if (currentMonth === 1) {
-                setCurrentMonth(12);
-                setCurrentYear(currentYear - 1);
-              } else {
-                setCurrentMonth(currentMonth - 1);
-              }
-            }}
-          >
-            ←
-          </button>
-          <h2 className={styles.monthTitle}>{monthNames[currentMonth - 1]} {currentYear}</h2>
-          <button
-            className={styles.monthNavButton}
-            onClick={() => {
-              if (currentMonth === 12) {
-                setCurrentMonth(1);
-                setCurrentYear(currentYear + 1);
-              } else {
-                setCurrentMonth(currentMonth + 1);
-              }
-            }}
-          >
-            →
-          </button>
-        </div>
-
-        {/* Calendar */}
-        {loading ? (
-          <div className={styles.loading}>
-            <p>Loading calendar...</p>
-          </div>
-        ) : (
-          renderCalendar()
-        )}
-
-        {/* New Post Form */}
-        {showNewPost && !editingPostId && (
-          <div className={styles.panel}>
-            <h3>📝 Create Entry for {selectedDate && `${monthNames[currentMonth - 1]} ${selectedDate}, ${currentYear}`}</h3>
-            <form onSubmit={handlePublish}>
-              <input
-                type="date"
-                value={newPost.postDate}
-                onChange={(e) => setNewPost({ ...newPost, postDate: e.target.value })}
-                className={styles.input}
-                required
-                min={`${currentYear}-${String(currentMonth).padStart(2, '0')}-01`}
-                max={`${currentYear}-${String(currentMonth).padStart(2, '0')}-${getDaysInMonth(currentYear, currentMonth)}`}
-              />
-              <input
-                type="text"
-                placeholder="Post title..."
-                value={newPost.title}
-                onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                className={styles.input}
-                required
-              />
-              <textarea
-                placeholder="Write your post here..."
-                value={newPost.content}
-                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                className={styles.textarea}
-                rows="8"
-                required
-              />
-              <div className={styles.moodSelection}>
-                <label className={styles.moodLabel}>Select Mood *</label>
-                <div className={styles.moodButtons}>
+            {isCalendarVisible ? (
+              <>
+                <div className={styles.monthNavigation}>
                   <button
-                    type="button"
-                    className={`${styles.moodButton} ${styles.moodSad} ${newPost.mood === 'sad' ? styles.moodSelected : ''}`}
-                    onClick={() => setNewPost({ ...newPost, mood: 'sad' })}
+                    className={styles.monthNavButton}
+                    onClick={() => {
+                      if (currentMonth === 1) {
+                        setCurrentMonth(12);
+                        setCurrentYear(currentYear - 1);
+                      } else {
+                        setCurrentMonth(currentMonth - 1);
+                      }
+                    }}
                   >
-                    😢 Sad
+                    ←
                   </button>
+                  <h2 className={styles.monthTitle}>{monthNames[currentMonth - 1]} {currentYear}</h2>
                   <button
-                    type="button"
-                    className={`${styles.moodButton} ${styles.moodNeutral} ${newPost.mood === 'neutral' ? styles.moodSelected : ''}`}
-                    onClick={() => setNewPost({ ...newPost, mood: 'neutral' })}
+                    className={styles.monthNavButton}
+                    onClick={() => {
+                      if (currentMonth === 12) {
+                        setCurrentMonth(1);
+                        setCurrentYear(currentYear + 1);
+                      } else {
+                        setCurrentMonth(currentMonth + 1);
+                      }
+                    }}
                   >
-                    😐 Neutral
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.moodButton} ${styles.moodHappy} ${newPost.mood === 'happy' ? styles.moodSelected : ''}`}
-                    onClick={() => setNewPost({ ...newPost, mood: 'happy' })}
-                  >
-                    😊 Happy
+                    →
                   </button>
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" className={styles.btnPublish}>
-                  📤 Publish
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnCancel}
-                  onClick={() => {
-                    setShowNewPost(false);
-                    setNewPost({ title: '', content: '', mood: '', postDate: '' });
-                    setSelectedDate(null);
-                  }}
-                >
-                  ✕ Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
-        {/* Edit Post Form */}
-        {editingPostId && (
-          <div className={styles.panel}>
-            <h3>✏️ Edit Post</h3>
-            <form onSubmit={handleUpdatePost}>
-              <input
-                type="text"
-                placeholder="Post title..."
-                value={editPost.title}
-                onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
-                className={styles.input}
-                required
-              />
-              <textarea
-                placeholder="Write your post here..."
-                value={editPost.content}
-                onChange={(e) => setEditPost({ ...editPost, content: e.target.value })}
-                className={styles.textarea}
-                rows="8"
-                required
-              />
-              <div className={styles.moodSelection}>
-                <label className={styles.moodLabel}>Select Mood *</label>
-                <div className={styles.moodButtons}>
+                {loading ? (
+                  <div className={styles.loading}>
+                    <p>Loading calendar...</p>
+                  </div>
+                ) : (
+                  renderCalendar()
+                )}
+              </>
+            ) : (
+              <>
+                <div className={styles.detailNav}>
                   <button
-                    type="button"
-                    className={`${styles.moodButton} ${styles.moodSad} ${editPost.mood === 'sad' ? styles.moodSelected : ''}`}
-                    onClick={() => setEditPost({ ...editPost, mood: 'sad' })}
+                    className={styles.detailBackButton}
+                    onClick={handleBackToCalendar}
                   >
-                    😢 Sad
+                    ← Back to calendar
                   </button>
-                  <button
-                    type="button"
-                    className={`${styles.moodButton} ${styles.moodNeutral} ${editPost.mood === 'neutral' ? styles.moodSelected : ''}`}
-                    onClick={() => setEditPost({ ...editPost, mood: 'neutral' })}
-                  >
-                    😐 Neutral
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.moodButton} ${styles.moodHappy} ${editPost.mood === 'happy' ? styles.moodSelected : ''}`}
-                    onClick={() => setEditPost({ ...editPost, mood: 'happy' })}
-                  >
-                    😊 Happy
-                  </button>
+                  {selectedPost && (
+                    <span className={styles.detailDateLabel}>
+                      {new Date(selectedPost.created_at).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  )}
+                  {!selectedPost && selectedDate && (
+                    <span className={styles.detailDateLabel}>
+                      {`${monthNames[currentMonth - 1]} ${selectedDate}, ${currentYear}`}
+                    </span>
+                  )}
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" className={styles.btnPublish}>
-                  💾 Save Changes
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnCancel}
-                  onClick={handleCancelEdit}
-                >
-                  ✕ Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
-        {/* Selected Post Detail View */}
-        {selectedPost && !editingPostId && (
-          <div className={styles.postDetail}>
-            <div className={styles.postDetailHeader}>
-              <h3>Post Details</h3>
-              <button
-                className={styles.closeButton}
-                onClick={() => {
-                  setSelectedPost(null);
-                  setSelectedDate(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className={styles.moodDisplayTop}>
-              <span className={`${styles.moodEmoji} ${
-                selectedPost.mood === 'sad' ? styles.moodSadEmoji :
-                selectedPost.mood === 'neutral' ? styles.moodNeutralEmoji :
-                styles.moodHappyEmoji
-              }`}>
-                {selectedPost.mood === 'sad' ? '😢' : selectedPost.mood === 'neutral' ? '😐' : '😊'}
-              </span>
-            </div>
-            <h2 className={styles.postTitle}>{selectedPost.title}</h2>
-            <div className={styles.postContent}>{selectedPost.content}</div>
-            <div className={styles.postDate}>
-              {new Date(selectedPost.created_at).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </div>
-            {viewingUserId === user.id && (
-              <div className={styles.postDetailActions}>
-                <button
-                  className={styles.btnEdit}
-                  onClick={() => handleEditPost(selectedPost)}
-                >
-                  ✏️ Edit
-                </button>
-                <button
-                  className={styles.btnDelete}
-                  onClick={() => handleDeletePost(selectedPost.id)}
-                >
-                  🗑️ Delete
-                </button>
-              </div>
+                {showNewPost && !editingPostId && (
+                  <div className={styles.panel}>
+                    <h3>📝 Create Entry for {selectedDate && `${monthNames[currentMonth - 1]} ${selectedDate}, ${currentYear}`}</h3>
+                    <form onSubmit={handlePublish}>
+                      <input
+                        type="date"
+                        value={newPost.postDate}
+                        onChange={(e) => setNewPost({ ...newPost, postDate: e.target.value })}
+                        className={styles.input}
+                        required
+                        min={`${currentYear}-${String(currentMonth).padStart(2, '0')}-01`}
+                        max={`${currentYear}-${String(currentMonth).padStart(2, '0')}-${getDaysInMonth(currentYear, currentMonth)}`}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Post title..."
+                        value={newPost.title}
+                        onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                        className={styles.input}
+                        required
+                      />
+                      <textarea
+                        placeholder="Write your post here..."
+                        value={newPost.content}
+                        onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                        className={styles.textarea}
+                        rows="8"
+                        required
+                      />
+                      <div className={styles.moodSelection}>
+                        <label className={styles.moodLabel}>Select Mood *</label>
+                        <div className={styles.moodButtons}>
+                          <button
+                            type="button"
+                            className={`${styles.moodButton} ${styles.moodSad} ${newPost.mood === 'sad' ? styles.moodSelected : ''}`}
+                            onClick={() => setNewPost({ ...newPost, mood: 'sad' })}
+                          >
+                            😢 Sad
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.moodButton} ${styles.moodNeutral} ${newPost.mood === 'neutral' ? styles.moodSelected : ''}`}
+                            onClick={() => setNewPost({ ...newPost, mood: 'neutral' })}
+                          >
+                            😐 Neutral
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.moodButton} ${styles.moodHappy} ${newPost.mood === 'happy' ? styles.moodSelected : ''}`}
+                            onClick={() => setNewPost({ ...newPost, mood: 'happy' })}
+                          >
+                            😊 Happy
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button type="submit" className={styles.btnPublish}>
+                          📤 Publish
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.btnCancel}
+                          onClick={() => handleBackToCalendar()}
+                        >
+                          ✕ Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {editingPostId && (
+                  <div className={styles.panel}>
+                    <h3>✏️ Edit Post</h3>
+                    <form onSubmit={handleUpdatePost}>
+                      <input
+                        type="text"
+                        placeholder="Post title..."
+                        value={editPost.title}
+                        onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
+                        className={styles.input}
+                        required
+                      />
+                      <textarea
+                        placeholder="Write your post here..."
+                        value={editPost.content}
+                        onChange={(e) => setEditPost({ ...editPost, content: e.target.value })}
+                        className={styles.textarea}
+                        rows="8"
+                        required
+                      />
+                      <div className={styles.moodSelection}>
+                        <label className={styles.moodLabel}>Select Mood *</label>
+                        <div className={styles.moodButtons}>
+                          <button
+                            type="button"
+                            className={`${styles.moodButton} ${styles.moodSad} ${editPost.mood === 'sad' ? styles.moodSelected : ''}`}
+                            onClick={() => setEditPost({ ...editPost, mood: 'sad' })}
+                          >
+                            😢 Sad
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.moodButton} ${styles.moodNeutral} ${editPost.mood === 'neutral' ? styles.moodSelected : ''}`}
+                            onClick={() => setEditPost({ ...editPost, mood: 'neutral' })}
+                          >
+                            😐 Neutral
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.moodButton} ${styles.moodHappy} ${editPost.mood === 'happy' ? styles.moodSelected : ''}`}
+                            onClick={() => setEditPost({ ...editPost, mood: 'happy' })}
+                          >
+                            😊 Happy
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button type="submit" className={styles.btnPublish}>
+                          💾 Save Changes
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.btnCancel}
+                          onClick={handleCancelEdit}
+                        >
+                          ✕ Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {selectedPost && !editingPostId && (
+                  <div className={styles.postDetail}>
+                    <div className={styles.postDetailHeader}>
+                      <h3>Post Details</h3>
+                    </div>
+                    <div className={styles.moodDisplayTop}>
+                      <span className={`${styles.moodEmoji} ${
+                        selectedPost.mood === 'sad' ? styles.moodSadEmoji :
+                        selectedPost.mood === 'neutral' ? styles.moodNeutralEmoji :
+                        styles.moodHappyEmoji
+                      }`}>
+                        {selectedPost.mood === 'sad' ? '😢' : selectedPost.mood === 'neutral' ? '😐' : '😊'}
+                      </span>
+                    </div>
+                    <h2 className={styles.postTitle}>{selectedPost.title}</h2>
+                    <div className={styles.postContent}>{selectedPost.content}</div>
+                    <div className={styles.postDate}>
+                      {new Date(selectedPost.created_at).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                    {viewingUserId === user.id && (
+                      <div className={styles.postDetailActions}>
+                        <button
+                          className={styles.btnEdit}
+                          onClick={() => handleEditPost(selectedPost)}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          className={styles.btnDelete}
+                          onClick={() => handleDeletePost(selectedPost.id)}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
-          </div>
-        )}
           </>
         )}
       </div>

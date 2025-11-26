@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import styles from '../styles/mailbox.module.css';
+import useTypingIndicator from '../hooks/useTypingIndicator';
 
 export default function Mailbox({ user }) {
   const [threads, setThreads] = useState([]);
@@ -28,6 +29,12 @@ export default function Mailbox({ user }) {
   const checkIntervalRef = useRef(null);
   const messagesEndRef = useRef(null);
   const chatMessagesRef = useRef(null);
+  const activeChatRoomId = useMemo(() => {
+    if (!selectedThread || !user?.id) return null;
+    const ids = [user.id, selectedThread.other_user_id].sort((a, b) => a - b);
+    return ids.join('-');
+  }, [selectedThread, user?.id]);
+  const { partnerTyping, handleTyping } = useTypingIndicator(activeChatRoomId, user?.id);
 
   useEffect(() => {
     if (!user) {
@@ -821,10 +828,26 @@ export default function Mailbox({ user }) {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
+                  {partnerTyping && (
+                    <div className={styles.typingIndicator}>
+                      <span className={styles.typingEmoji}>💬</span>
+                      <div className={styles.typingText}>
+                        Your partner is typing
+                        <span className={styles.typingDots}>
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <form onSubmit={handleSendMessage} className={styles.chatInput}>
                     <textarea
                       value={replyingContent}
-                      onChange={(e) => setReplyingContent(e.target.value)}
+                      onChange={(e) => {
+                        setReplyingContent(e.target.value);
+                        handleTyping();
+                      }}
                       placeholder="Type your message..."
                       className={styles.chatTextarea}
                       rows="2"
