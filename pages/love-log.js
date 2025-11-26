@@ -284,9 +284,13 @@ export default function LoveLog({ user }) {
   const handleAcceptRequest = async (requestId) => {
     try {
       const token = getToken();
-      const res = await fetch(`/api/love-log/friend-requests/${requestId}/accept`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch('/api/love-log/friend-requests', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ requestId, action: 'accept' })
       });
 
       if (res.ok) {
@@ -306,9 +310,13 @@ export default function LoveLog({ user }) {
   const handleRejectRequest = async (requestId) => {
     try {
       const token = getToken();
-      const res = await fetch(`/api/love-log/friend-requests/${requestId}/reject`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch('/api/love-log/friend-requests', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ requestId, action: 'reject' })
       });
 
       if (res.ok) {
@@ -686,7 +694,7 @@ export default function LoveLog({ user }) {
             </div>
 
             {isCalendarVisible ? (
-              <>
+              <div className={styles.calendarSection}>
                 <div className={styles.monthNavigation}>
                   <button
                     className={styles.monthNavButton}
@@ -724,7 +732,7 @@ export default function LoveLog({ user }) {
                 ) : (
                   renderCalendar()
                 )}
-              </>
+              </div>
             ) : (
               <>
                 <div className={styles.detailNav}>
