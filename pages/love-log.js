@@ -6,8 +6,8 @@ import styles from '../styles/love-log.module.css';
 export default function LoveLog({ user }) {
   const [viewingUserId, setViewingUserId] = useState(null); // null = initial screen, user.id = own log, friend.id = friend's log
   const [viewingUsername, setViewingUsername] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(11); // November
-  const [currentYear, setCurrentYear] = useState(2025);
+  const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewPost, setShowNewPost] = useState(false);
@@ -410,7 +410,8 @@ export default function LoveLog({ user }) {
     const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return posts.find(post => {
       const postDate = new Date(post.created_at);
-      const postDateStr = `${postDate.getFullYear()}-${String(postDate.getMonth() + 1).padStart(2, '0')}-${String(postDate.getDate()).padStart(2, '0')}`;
+      // Use UTC methods to avoid timezone shifting the date
+      const postDateStr = `${postDate.getUTCFullYear()}-${String(postDate.getUTCMonth() + 1).padStart(2, '0')}-${String(postDate.getUTCDate()).padStart(2, '0')}`;
       return postDateStr === dateStr && post.user_id === viewingUserId;
     });
   };
@@ -482,6 +483,10 @@ export default function LoveLog({ user }) {
     const daysInMonth = getDaysInMonth(currentYear, currentMonth);
     const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
     const days = [];
+    const today = new Date();
+    const todayDay = today.getDate();
+    const todayMonth = today.getMonth() + 1;
+    const todayYear = today.getFullYear();
 
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
@@ -501,15 +506,16 @@ export default function LoveLog({ user }) {
           }
           const post = getPostForDate(day);
           const moodEmoji = post?.mood === 'sad' ? '😢' : post?.mood === 'neutral' ? '😐' : post?.mood === 'happy' ? '😊' : null;
+          const isToday = day === todayDay && currentMonth === todayMonth && currentYear === todayYear;
 
           return (
             <div
               key={idx}
-              className={`${styles.calendarDay} ${post ? styles.calendarDayHasPost : ''} ${selectedDate === day ? styles.calendarDaySelected : ''}`}
+              className={`${styles.calendarDay} ${post ? styles.calendarDayHasPost : ''} ${selectedDate === day ? styles.calendarDaySelected : ''} ${isToday ? styles.calendarDayToday : ''}`}
               onClick={() => handleDayClick(day)}
               title={post?.title || ''}
             >
-              <div className={styles.calendarDayNumber}>{day}</div>
+              <div className={styles.calendarDayNumber}>{isToday ? 'TODAY' : day}</div>
               {moodEmoji && (
                 <div className={styles.calendarDayMood}>{moodEmoji}</div>
               )}

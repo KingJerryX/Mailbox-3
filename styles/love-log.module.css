@@ -808,6 +808,15 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
+.calendarDayToday {
+  border: 2px dashed #667eea;
+}
+
+.calendarDayToday .calendarDayNumber {
+  color: #667eea;
+  font-weight: 700;
+}
+
 .calendarDayNumber {
   font-size: 12px;
   font-weight: 600;
