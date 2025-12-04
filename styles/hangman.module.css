@@ -1,0 +1,468 @@
+.container {
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 50px;
+  color: white;
+  font-size: 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.backButton {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.backButton:hover {
+  background: white;
+  color: #667eea;
+}
+
+.title {
+  font-size: 48px;
+  margin: 20px 0 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 2000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.notification.error {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.hintSection {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hintButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+}
+
+.hintButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6);
+}
+
+.hintDisplay {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  font-size: 18px;
+  color: #374151;
+}
+
+.hangmanSection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.hangmanDrawing {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.hangmanSvg {
+  width: 200px;
+  height: 250px;
+}
+
+.wordDisplay {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.maskedWord {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wordChar {
+  font-size: inherit;
+  font-weight: bold;
+  color: #667eea;
+  min-width: 0.8em;
+  text-align: center;
+  display: inline-block;
+  transition: transform 0.6s;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+
+.wordSpace {
+  min-width: 1.5em;
+  color: transparent;
+}
+
+.charFlip {
+  animation: flip 0.6s ease-in-out;
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(90deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.mainMenuButton {
+  margin-top: 30px;
+  padding: 15px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.mainMenuButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.resultMessage {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 40px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.confetti,
+.sadFace {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.resultMessage h2 {
+  font-size: 36px;
+  color: #667eea;
+  margin: 20px 0;
+}
+
+.resultMessage p {
+  font-size: 24px;
+  color: #374151;
+  margin-top: 10px;
+}
+
+.alphabetSection {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.alphabetSection h3 {
+  text-align: center;
+  color: #667eea;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.alphabetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 10px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.letterButton {
+  padding: 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: white;
+  color: #374151;
+}
+
+.letterButton:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.letterButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.letterRevealed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  border-color: #10b981 !important;
+}
+
+.letterWrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+  border-color: #ef4444 !important;
+}
+
+.letterFlip {
+  animation: flip 0.6s ease-in-out;
+}
+
+.wordGuessSection {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.wordGuessSection h3 {
+  text-align: center;
+  color: #667eea;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.wordGuessForm {
+  display: flex;
+  gap: 15px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.wordInput {
+  flex: 1;
+  padding: 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.wordInput:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.wordGuessButton {
+  padding: 15px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.wordGuessButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .backButton {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+
+  .maskedWord {
+    padding: 20px 10px;
+    gap: 4px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: clamp(20px, 6vw, 36px) !important;
+  }
+
+  .wordChar {
+    min-width: 0.7em;
+    flex-shrink: 0;
+    padding: 0 1px;
+  }
+
+  .hangmanDrawing {
+    padding: 20px;
+  }
+
+  .hangmanSvg {
+    width: 150px;
+    height: 188px;
+  }
+
+  .alphabetGrid {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 8px;
+  }
+
+  .letterButton {
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .wordGuessForm {
+    flex-direction: column;
+  }
+
+  .wordInput {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .wordGuessButton {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  .resultMessage {
+    padding: 30px 20px;
+  }
+
+  .resultMessage h2 {
+    font-size: 28px;
+  }
+
+  .resultMessage p {
+    font-size: 18px;
+  }
+
+  .alphabetSection,
+  .wordGuessSection {
+    padding: 20px;
+  }
+
+  .alphabetSection h3,
+  .wordGuessSection h3 {
+    font-size: 20px;
+  }
+
+  .hintDisplay {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 12px 16px;
+  }
+}
